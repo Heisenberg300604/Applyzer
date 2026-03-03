@@ -1,17 +1,30 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { UserProvider } from '@/context/UserContext'
+
+// Public pages
 import Landing from '@/pages/Landing'
 import Signup from '@/pages/Signup'
 import Login from '@/pages/Login'
 
-// Placeholder pages — to be built in later phases
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="min-h-screen gradient-hero flex items-center justify-center">
-    <div className="text-center">
-      <div className="text-6xl mb-4">🚧</div>
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-2">{title}</h1>
-      <p className="text-gray-500">This page is coming soon in the next phase.</p>
-      <a href="/" className="mt-6 inline-flex text-violet-600 font-semibold hover:underline">← Back to Home</a>
+// Layout & authenticated pages
+import DashboardLayout from '@/components/DashboardLayout'
+import Dashboard from '@/pages/Dashboard'
+import Profile from '@/pages/Profile'
+import Jobs from '@/pages/Jobs'
+import Apply from '@/pages/Apply'
+import Resume from '@/pages/Resume'
+import Notifications from '@/pages/Notifications'
+
+// 404 catch-all
+const NotFound = () => (
+  <div className="min-h-screen gradient-hero flex items-center justify-center text-center">
+    <div>
+      <p className="text-8xl mb-4">🤖</p>
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-2">404 — Page Not Found</h1>
+      <p className="text-gray-500 mb-6">Looks like this page got lost in the job market.</p>
+      <a href="/" className="gradient-violet text-white px-6 py-3 rounded-xl font-bold inline-block shadow-lg shadow-violet-200 hover:opacity-90 transition-opacity">
+        ← Back to Home
+      </a>
     </div>
   </div>
 )
@@ -21,22 +34,23 @@ export default function App() {
     <UserProvider>
       <BrowserRouter>
         <Routes>
-          {/* Phase 1 — Landing */}
+          {/* ── Public routes ─────────────────────────────────────── */}
           <Route path="/" element={<Landing />} />
-
-          {/* Phase 2 — Auth */}
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Phase 3+ — Placeholders */}
-          <Route path="/profile" element={<PlaceholderPage title="Profile Builder" />} />
-          <Route path="/jobs" element={<PlaceholderPage title="Job Search" />} />
-          <Route path="/apply" element={<PlaceholderPage title="Bulk Apply" />} />
-          <Route path="/dashboard" element={<PlaceholderPage title="Application Dashboard" />} />
-          <Route path="/resume" element={<PlaceholderPage title="Resume & Cover Letter" />} />
+          {/* ── Authenticated routes (shared DashboardLayout sidebar) ── */}
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/apply" element={<Apply />} />
+            <Route path="/resume" element={<Resume />} />
+            <Route path="/notifications" element={<Notifications />} />
+          </Route>
 
-          {/* 404 */}
-          <Route path="*" element={<PlaceholderPage title="404 — Page Not Found" />} />
+          {/* ── 404 ─────────────────────────────────────────────── */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>

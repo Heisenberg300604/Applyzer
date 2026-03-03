@@ -280,3 +280,12 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* ========= Form label utility ========= */
+.label-sm {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.375rem;
+}
