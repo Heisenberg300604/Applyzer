@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import {
     User, Code, GraduationCap, Briefcase,
     FolderGit2, Plus, Trash2, Save, CheckCircle, Link as LinkIcon
@@ -80,7 +79,7 @@ export default function Profile() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Profile Builder</h1>
-                <p className="text-gray-500">Fill in your details — ApplyBot uses this to generate tailored applications.</p>
+                <p className="text-gray-500">Fill in your details — Applyzer uses this to generate tailored applications.</p>
             </div>
 
             {/* Completeness card */}
@@ -153,7 +152,7 @@ export default function Profile() {
                     <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
                         <SectionHeader>Skills</SectionHeader>
                         <p className="text-sm text-gray-500 -mt-2">Group skills by category (e.g., "Languages: Python, TypeScript, Go")</p>
-                        {skills.map((s, i) => (
+                        {skills.map((s) => (
                             <div key={s.id} className="flex gap-3 items-start group">
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50/60 rounded-xl p-4 border border-gray-100">
                                     <div><label className="label-sm">Category</label><Input className={fieldClass} placeholder="e.g. Languages" value={s.category} onChange={e => updateItem(setSkills, s.id, { category: e.target.value })} /></div>
@@ -259,7 +258,7 @@ export default function Profile() {
                                     </button>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div><label className="label-sm">Project Title *</label><Input className={fieldClass} placeholder="ApplyBot" value={p.title} onChange={e => updateItem(setProjects, p.id, { title: e.target.value })} /></div>
+                                    <div><label className="label-sm">Project Title *</label><Input className={fieldClass} placeholder="Applyzer" value={p.title} onChange={e => updateItem(setProjects, p.id, { title: e.target.value })} /></div>
                                     <div><label className="label-sm">Tech Stack</label><Input className={fieldClass} placeholder="React, FastAPI, PostgreSQL" value={p.tech} onChange={e => updateItem(setProjects, p.id, { tech: e.target.value })} /></div>
                                     <div className="md:col-span-2"><label className="label-sm">Description</label>
                                         <textarea className="w-full rounded-xl border border-gray-200 focus:border-violet-400 p-3 text-sm resize-none outline-none focus:ring-2 focus:ring-violet-100 text-gray-700 mt-1" rows={2}

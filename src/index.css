@@ -1,7 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -49,7 +49,7 @@
 :root {
   --radius: 0.75rem;
 
-  /* === ApplyBot Brand Palette === */
+  /* === Applyzer Brand Palette === */
   --brand-violet: #7C3AED;
   --brand-violet-light: #8b5cf6;
   --brand-violet-pale: #ede9fe;
@@ -57,7 +57,7 @@
   --brand-amber: #f59e0b;
   --brand-dark: #0f0a1e;
 
-  /* === shadcn overridden to ApplyBot violet === */
+  /* === shadcn overridden to Applyzer violet === */
   --background: oklch(1 0 0);
   --foreground: oklch(0.09 0.005 260);
   --card: oklch(1 0 0);

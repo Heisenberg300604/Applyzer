@@ -82,7 +82,7 @@ export default function GlobalReachSection() {
                             Countries
                         </h2>
                         <p className="text-gray-500 text-lg mb-8 leading-relaxed">
-                            Whether you're targeting Silicon Valley, London's fintech scene, or Berlin's startup ecosystem — ApplyBot has you covered with localized resumes and culturally appropriate outreach.
+                            Whether you're targeting Silicon Valley, London's fintech scene, or Berlin's startup ecosystem — Applyzer has you covered with localized resumes and culturally appropriate outreach.
                         </p>
                         <ul className="space-y-3 mb-8">
                             {bullets.map(b => (
