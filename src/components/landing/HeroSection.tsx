@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Search, Sparkles, ArrowUpRight, Play } from 'lucide-react'
 import { motion } from 'framer-motion'
+import landingImg from '@public/landing.png'
 
 const popularTags = ['Software Engineer', 'Product Manager', 'UX Designer', 'Data Analyst', 'Marketing']
 
@@ -52,7 +53,7 @@ export default function HeroSection() {
 
                     {/* Sub-copy */}
                     <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
-                        <span className="font-bold text-violet-600">10,248+</span> jobs auto-applied. Enter your profile once — ApplyBot generates a tailored resume, cover letter & cold email, then sends it all via your Gmail.
+                        <span className="font-bold text-violet-600">10,248+</span> jobs auto-applied. Enter your profile once — Applyzer generates a tailored resume, cover letter & cold email, then sends it all via your Gmail.
                     </p>
 
                     {/* Search bar */}
@@ -107,51 +108,14 @@ export default function HeroSection() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                 >
-                    {/* Floating hero card */}
-                    <div className="relative animate-float">
-                        {/* Main illustration box */}
-                        <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-3xl gradient-violet shadow-2xl shadow-violet-300/50 flex items-center justify-center relative overflow-hidden">
-                            {/* Inner glow rings */}
-                            <div className="absolute w-64 h-64 rounded-full border-2 border-white/20 animate-spin-slow" />
-                            <div className="absolute w-48 h-48 rounded-full border border-white/10 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '8s' }} />
-
-                            {/* Bot illustration */}
-                            <div className="relative z-10 flex flex-col items-center gap-4">
-                                <div className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-inner">
-                                    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="8" y="16" width="36" height="28" rx="6" fill="white" fillOpacity="0.9" />
-                                        <rect x="18" y="8" width="16" height="12" rx="4" fill="white" fillOpacity="0.7" />
-                                        <circle cx="19" cy="28" r="3" fill="#7C3AED" />
-                                        <circle cx="33" cy="28" r="3" fill="#7C3AED" />
-                                        <rect x="20" y="35" width="12" height="3" rx="1.5" fill="#7C3AED" fillOpacity="0.5" />
-                                        <rect x="4" y="24" width="4" height="8" rx="2" fill="white" fillOpacity="0.6" />
-                                        <rect x="44" y="24" width="4" height="8" rx="2" fill="white" fillOpacity="0.6" />
-                                    </svg>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-white font-bold text-lg">ApplyBot AI</p>
-                                    <p className="text-violet-200 text-xs">Applying to 12 jobs now...</p>
-                                </div>
-                                {/* Progress bar */}
-                                <div className="w-48 h-2 bg-white/20 rounded-full overflow-hidden">
-                                    <div className="h-full w-3/4 bg-white rounded-full animate-pulse" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Floating stat cards */}
-                        <div className="absolute -top-6 -left-12 glass-card rounded-2xl px-4 py-3 shadow-lg animate-slide-up" style={{ animationDelay: '0.5s' }}>
-                            <p className="text-xs text-gray-500 font-medium">Applications Sent</p>
-                            <p className="text-2xl font-extrabold text-violet-600">10,248</p>
-                        </div>
-                        <div className="absolute -bottom-4 -right-8 glass-card rounded-2xl px-4 py-3 shadow-lg animate-slide-up" style={{ animationDelay: '0.7s' }}>
-                            <p className="text-xs text-gray-500 font-medium">⚡ Avg Apply Time</p>
-                            <p className="text-2xl font-extrabold text-green-500">15 min</p>
-                        </div>
-                        <div className="absolute top-1/2 -right-16 glass-card rounded-2xl px-3 py-2 shadow-lg animate-slide-up" style={{ animationDelay: '0.9s' }}>
-                            <p className="text-xs text-gray-500">Reply Rate</p>
-                            <p className="text-lg font-extrabold text-violet-600">34%</p>
-                        </div>
+                    <div className="w-full max-w-[640px]">
+                        <img
+                            src={landingImg}
+                            alt="Applyzer product preview"
+                            loading="eager"
+                            decoding="async"
+                            className="w-full h-auto rounded-3xl shadow-2xl shadow-violet-200/70 border border-violet-100/60"
+                        />
                     </div>
                 </motion.div>
             </div>

@@ -36,7 +36,7 @@ export default function Navbar() {
                         <Bot className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-lg font-bold text-gray-900">
-                        Apply<span className="text-gradient-violet">Bot</span>
+                        Apply<span className="text-gradient-violet">zer</span>
                     </span>
                 </Link>
 

@@ -50,7 +50,7 @@ export default function InsightsSection() {
                         Insights & <span className="text-gradient-violet">Updates</span>
                     </h2>
                     <p className="text-lg text-gray-500 max-w-lg mx-auto">
-                        Job search strategies, resume tips, and product updates from the ApplyBot team.
+                        Job search strategies, resume tips, and product updates from the Applyzer team.
                     </p>
                 </motion.div>
 

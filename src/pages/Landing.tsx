@@ -1,7 +1,5 @@
 import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/landing/HeroSection'
-import TrustedBar from '@/components/landing/TrustedBar'
-import StatsSection from '@/components/landing/StatsSection'
 import FeaturesSection from '@/components/landing/FeaturesSection'
 import HowItWorks from '@/components/landing/HowItWorks'
 import CategoriesSection from '@/components/landing/CategoriesSection'
@@ -15,8 +13,6 @@ export default function Landing() {
             <Navbar />
             <main>
                 <HeroSection />
-                <TrustedBar />
-                <StatsSection />
                 <FeaturesSection />
                 <HowItWorks />
                 <CategoriesSection />

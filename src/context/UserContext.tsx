@@ -11,16 +11,16 @@ const UserContext = createContext<UserContextType | null>(null)
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [userId, setUserIdState] = useState<string | null>(
-        () => localStorage.getItem('applybot_user_id')
+        () => localStorage.getItem('Applyzer_user_id')
     )
 
     const setUserId = (id: string) => {
-        localStorage.setItem('applybot_user_id', id)
+        localStorage.setItem('Applyzer_user_id', id)
         setUserIdState(id)
     }
 
     const logout = () => {
-        localStorage.removeItem('applybot_user_id')
+        localStorage.removeItem('Applyzer_user_id')
         setUserIdState(null)
     }
 

@@ -26,7 +26,7 @@ export default function Signup() {
                         <div className="w-10 h-10 rounded-xl gradient-violet flex items-center justify-center shadow-lg">
                             <Bot className="w-5 h-5 text-white" />
                         </div>
-                        <span className="text-xl font-extrabold text-gray-900">Apply<span className="text-gradient-violet">Bot</span></span>
+                        <span className="text-xl font-extrabold text-gray-900">Apply<span className="text-gradient-violet">zer</span></span>
                     </Link>
                     <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Create your account</h1>
                     <p className="text-gray-500">Start applying smarter — for free.</p>

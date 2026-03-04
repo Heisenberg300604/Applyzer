@@ -80,7 +80,7 @@ export default function Profile() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Profile Builder</h1>
-                <p className="text-gray-500">Fill in your details — ApplyBot uses this to generate tailored applications.</p>
+                <p className="text-gray-500">Fill in your details — Applyzer uses this to generate tailored applications.</p>
             </div>
 
             {/* Completeness card */}
@@ -259,7 +259,7 @@ export default function Profile() {
                                     </button>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div><label className="label-sm">Project Title *</label><Input className={fieldClass} placeholder="ApplyBot" value={p.title} onChange={e => updateItem(setProjects, p.id, { title: e.target.value })} /></div>
+                                    <div><label className="label-sm">Project Title *</label><Input className={fieldClass} placeholder="Applyzer" value={p.title} onChange={e => updateItem(setProjects, p.id, { title: e.target.value })} /></div>
                                     <div><label className="label-sm">Tech Stack</label><Input className={fieldClass} placeholder="React, FastAPI, PostgreSQL" value={p.tech} onChange={e => updateItem(setProjects, p.id, { tech: e.target.value })} /></div>
                                     <div className="md:col-span-2"><label className="label-sm">Description</label>
                                         <textarea className="w-full rounded-xl border border-gray-200 focus:border-violet-400 p-3 text-sm resize-none outline-none focus:ring-2 focus:ring-violet-100 text-gray-700 mt-1" rows={2}

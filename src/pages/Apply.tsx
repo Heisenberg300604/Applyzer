@@ -89,7 +89,7 @@ export default function Apply() {
             </button>
 
             <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Bulk Apply</h1>
-            <p className="text-gray-500 mb-8">Review your selections, configure settings, and let ApplyBot apply for you.</p>
+            <p className="text-gray-500 mb-8">Review your selections, configure settings, and let Applyzer apply for you.</p>
 
             {/* Config card */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">

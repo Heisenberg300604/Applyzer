@@ -63,7 +63,7 @@ export default function Footer() {
                             <div className="w-9 h-9 rounded-xl gradient-violet flex items-center justify-center shadow-lg">
                                 <Bot className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-xl font-extrabold text-white">Apply<span className="text-violet-400">Bot</span></span>
+                            <span className="text-xl font-extrabold text-white">Apply<span className="text-violet-400">zer</span></span>
                         </Link>
                         <p className="text-gray-400 text-sm leading-relaxed mb-6">
                             AI-powered job applications that save you hours and land more interviews.
@@ -104,7 +104,7 @@ export default function Footer() {
 
                 {/* Bottom bar */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-12 pt-8 border-t border-white/10">
-                    <p className="text-gray-500 text-sm">© {new Date().getFullYear()} ApplyBot. All rights reserved.</p>
+                    <p className="text-gray-500 text-sm">© {new Date().getFullYear()} Applyzer. All rights reserved.</p>
                     <p className="text-gray-500 text-sm">Built with ❤️ for job seekers worldwide.</p>
                 </div>
             </div>
