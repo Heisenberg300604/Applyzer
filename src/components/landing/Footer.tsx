@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Bot, Github, Twitter, Linkedin, Instagram, ArrowUpRight, Mail } from 'lucide-react'
+import { SignUpButton } from '@clerk/react'
 
 const links = {
     Product: [
@@ -45,12 +46,14 @@ export default function Footer() {
                         </h2>
                         <p className="text-gray-400 text-lg">Have questions? We'd love to hear from you.</p>
                     </div>
-                    <Link
-                        to="/signup"
-                        className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 transition-colors text-white font-bold px-8 py-4 rounded-2xl text-lg shadow-lg shadow-violet-900/40"
-                    >
-                        <Mail className="w-5 h-5" /> Get in Touch
-                    </Link>
+                    <SignUpButton>
+                        <button
+                            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 transition-colors text-white font-bold px-8 py-4 rounded-2xl text-lg shadow-lg shadow-violet-900/40"
+                            type="button"
+                        >
+                            <Mail className="w-5 h-5" /> Get in Touch
+                        </button>
+                    </SignUpButton>
                 </div>
             </div>
 

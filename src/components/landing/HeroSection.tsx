@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Search, Sparkles, ArrowUpRight, Play } from 'lucide-react'
 import { motion } from 'framer-motion'
-import landingImg from '@public/landing.png'
 
 const popularTags = ['Software Engineer', 'Product Manager', 'UX Designer', 'Data Analyst', 'Marketing']
 
@@ -86,7 +85,7 @@ export default function HeroSection() {
 
                     {/* CTA Row */}
                     <div className="flex items-center gap-4 mt-8">
-                        <Link to="/signup">
+                        <Link to="/sign-in">
                             <Button size="lg" className="gradient-violet text-white border-0 shadow-lg shadow-violet-300 hover:shadow-violet-400 hover:scale-105 transition-all duration-200 font-bold rounded-xl px-8 flex items-center gap-2">
                                 Start Free Today
                                 <ArrowUpRight className="w-4 h-4" />
@@ -110,7 +109,7 @@ export default function HeroSection() {
                 >
                     <div className="w-full max-w-[640px]">
                         <img
-                            src={landingImg}
+                            src="/landing.png"
                             alt="Applyzer product preview"
                             loading="eager"
                             decoding="async"

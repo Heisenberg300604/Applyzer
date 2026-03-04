@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, Bot, ArrowUpRight } from 'lucide-react'
+import { Show, UserButton } from '@clerk/react'
 
 const navLinks = [
     { label: 'Home', href: '/' },
@@ -58,17 +59,17 @@ export default function Navbar() {
 
                 {/* Desktop CTA */}
                 <div className="hidden md:flex items-center gap-3">
-                    <Link to="/login">
-                        <Button variant="ghost" className="text-gray-700 hover:text-violet-600 font-medium">
-                            Sign In
-                        </Button>
-                    </Link>
-                    <Link to="/signup">
-                        <Button className="gradient-violet text-white border-0 shadow-lg shadow-violet-200 hover:shadow-violet-300 hover:scale-105 transition-all duration-200 font-semibold rounded-xl flex items-center gap-1.5">
-                            Get Started
-                            <ArrowUpRight className="w-4 h-4" />
-                        </Button>
-                    </Link>
+                    <Show when="signed-out">
+                        <Link to="/sign-in">
+                            <Button className="gradient-violet text-white border-0 shadow-lg shadow-violet-200 hover:shadow-violet-300 hover:scale-105 transition-all duration-200 font-semibold rounded-xl flex items-center gap-1.5">
+                                Start
+                                <ArrowUpRight className="w-4 h-4" />
+                            </Button>
+                        </Link>
+                    </Show>
+                    <Show when="signed-in">
+                        <UserButton />
+                    </Show>
                 </div>
 
                 {/* Mobile Menu */}
@@ -98,12 +99,16 @@ export default function Navbar() {
                                 ))}
                             </nav>
                             <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                                <Link to="/login">
-                                    <Button variant="outline" className="w-full">Sign In</Button>
-                                </Link>
-                                <Link to="/signup">
-                                    <Button className="w-full gradient-violet text-white border-0">Get Started</Button>
-                                </Link>
+                                <Show when="signed-out">
+                                    <Link to="/sign-in">
+                                        <Button className="w-full gradient-violet text-white border-0">Start</Button>
+                                    </Link>
+                                </Show>
+                                <Show when="signed-in">
+                                    <div className="flex justify-center">
+                                        <UserButton />
+                                    </div>
+                                </Show>
                             </div>
                         </div>
                     </SheetContent>

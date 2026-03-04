@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import {
     User, Code, GraduationCap, Briefcase,
     FolderGit2, Plus, Trash2, Save, CheckCircle, Link as LinkIcon
@@ -153,7 +152,7 @@ export default function Profile() {
                     <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
                         <SectionHeader>Skills</SectionHeader>
                         <p className="text-sm text-gray-500 -mt-2">Group skills by category (e.g., "Languages: Python, TypeScript, Go")</p>
-                        {skills.map((s, i) => (
+                        {skills.map((s) => (
                             <div key={s.id} className="flex gap-3 items-start group">
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50/60 rounded-xl p-4 border border-gray-100">
                                     <div><label className="label-sm">Category</label><Input className={fieldClass} placeholder="e.g. Languages" value={s.category} onChange={e => updateItem(setSkills, s.id, { category: e.target.value })} /></div>

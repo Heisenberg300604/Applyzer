@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { useInView, motion } from 'framer-motion'
 import { UserCircle, Search, Zap, ArrowRight } from 'lucide-react'
-import howApplyzerWorksImg from '@public/howapplyzerworks.png'
 
 const steps = [
     {
@@ -55,25 +54,25 @@ export default function HowItWorks() {
                     </p>
                 </motion.div>
 
-                <div className="flex flex-col lg:flex-row items-center gap-12">
+                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-5">
                     {/* Left image */}
                     <motion.div
                         initial={{ opacity: 0, x: -24 }}
                         animate={inView ? { opacity: 1, x: 0 } : {}}
                         transition={{ duration: 0.6, delay: 0.05 }}
-                        className="w-full lg:w-[40%] flex justify-center lg:justify-start"
+                        className="w-full lg:w-[20%] flex justify-center lg:justify-start lg:mt-1"
                     >
                         <img
-                            src={howApplyzerWorksImg}
+                            src="/howapplyzerworks.png"
                             alt="How Applyzer works"
                             decoding="async"
                             loading="lazy"
-                            className="w-full max-w-[520px] h-auto rounded-3xl"
+                            className="w-full max-w-[200px] lg:max-w-[200px] "
                         />
                     </motion.div>
 
                     {/* Right steps */}
-                    <div className="relative w-full lg:w-[60%] flex flex-col lg:flex-row items-stretch gap-0">
+                    <div className="relative w-full lg:w-[60%] flex flex-col lg:flex-row items-stretch gap-4 lg:gap-0 lg:mt-1">
                         {/* Connector line (desktop) */}
                         <div className="hidden lg:block absolute top-16 left-[16.5%] right-[16.5%] h-0.5 bg-gradient-to-r from-violet-300 via-blue-300 to-amber-300 z-0" />
 
@@ -83,15 +82,15 @@ export default function HowItWorks() {
                                 initial={{ opacity: 0, y: 32 }}
                                 animate={inView ? { opacity: 1, y: 0 } : {}}
                                 transition={{ duration: 0.6, delay: i * 0.18 }}
-                                className="flex-1 flex flex-col items-center text-center relative z-10 px-6"
+                                className="flex-1 flex flex-col items-center text-center relative z-10 px-3 lg:px-5 py-1 lg:py-0"
                             >
                                 {/* Step circle icon */}
-                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg shadow-violet-200/50 mb-4`}>
-                                    <step.icon className="w-7 h-7 text-white" />
+                                <div className={`w-16 h-16 md:w-18 md:h-18 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg shadow-violet-200/50 mb-4`}>
+                                    <step.icon className="w-7 h-7 md:w-8 md:h-8 text-white" />
                                 </div>
                                 <span className="text-xs font-black text-gray-300 tracking-widest mb-2">{step.number}</span>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                                <p className="text-gray-500 text-sm leading-relaxed mb-4">{step.desc}</p>
+                                <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-3">{step.title}</h3>
+                                <p className="text-gray-500 text-sm md:text-base leading-relaxed mb-4 max-w-md">{step.desc}</p>
                                 <div className="flex flex-wrap justify-center gap-1.5">
                                     {step.detail.split(' · ').map(tag => (
                                         <span key={tag} className="text-xs bg-violet-50 text-violet-600 font-medium rounded-full px-2.5 py-0.5 border border-violet-100">
