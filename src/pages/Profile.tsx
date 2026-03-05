@@ -1,286 +1,317 @@
-import { useState } from 'react'
-import { useUser } from '@/context/UserContext'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Progress } from '@/components/ui/progress'
+import { useEffect, useMemo, useState } from 'react'
+import { useUser as useClerkUser } from '@clerk/react'
 import { Badge } from '@/components/ui/badge'
-import {
-    User, Code, GraduationCap, Briefcase,
-    FolderGit2, Plus, Trash2, Save, CheckCircle, Link as LinkIcon
-} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
+import { ExternalLink, Github, Loader2, Sparkles } from 'lucide-react'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface Skill { id: number; category: string; items: string }
-interface Education { id: number; degree: string; institution: string; year: string; coursework: string }
-interface Experience { id: number; role: string; company: string; location: string; duration: string; achievements: string }
-interface Project { id: number; title: string; description: string; tech: string; url: string; keywords: string }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const emptySkill = (): Skill => ({ id: Date.now(), category: '', items: '' })
-const emptyEducation = (): Education => ({ id: Date.now(), degree: '', institution: '', year: '', coursework: '' })
-const emptyExperience = (): Experience => ({ id: Date.now(), role: '', company: '', location: '', duration: '', achievements: '' })
-const emptyProject = (): Project => ({ id: Date.now(), title: '', description: '', tech: '', url: '', keywords: '' })
-
-const fieldClass = 'rounded-xl border-gray-200 focus:border-violet-400 focus-visible:ring-violet-200'
-
-function SectionHeader({ children }: { children: React.ReactNode }) {
-    return <h3 className="text-base font-bold text-gray-900 mb-3">{children}</h3>
+type GithubRepo = {
+  id: number
+  name: string
+  html_url: string
+  description: string | null
+  language: string | null
+  stargazers_count: number
+  forks_count: number
+  updated_at: string
+  owner: { login: string }
 }
 
-// ─── Completeness score ───────────────────────────────────────────────────────
-function getScore(basic: Record<string, string>, skills: Skill[], edu: Education[], exp: Experience[], proj: Project[]) {
-    let score = 0
-    if (basic.name) score += 12
-    if (basic.email) score += 8
-    if (basic.phone) score += 5
-    if (basic.linkedin) score += 8
-    if (basic.github) score += 7
-    if (basic.summary) score += 10
-    if (skills.length) score += 15
-    if (edu.length) score += 15
-    if (exp.length) score += 15
-    if (proj.length) score += 5
-    return Math.min(score, 100)
+type GeneratedProfile = {
+  headline: string
+  summary: string
+  skills: string[]
+  highlights: string[]
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+const STOP_WORDS = new Set([
+  'the', 'and', 'for', 'with', 'this', 'that', 'from', 'your', 'you', 'are', 'into', 'using', 'used', 'build', 'built', 'project', 'projects',
+  'repository', 'repo', 'application', 'app', 'data', 'code', 'file', 'files', 'readme', 'setup', 'install', 'usage', 'demo', 'test', 'tests',
+  'about', 'over', 'under', 'into', 'onto', 'http', 'https', 'www', 'com', 'org', 'net', 'can', 'will', 'should', 'have', 'has', 'had', 'not',
+  'all', 'any', 'each', 'more', 'most', 'some', 'such', 'than', 'then', 'when', 'where', 'which', 'while', 'what', 'why', 'who', 'how',
+])
+
+const extractKeywords = (text: string, max = 12) => {
+  const tokens = (text.toLowerCase().match(/[a-z][a-z0-9+#.-]{2,}/g) || [])
+    .filter(token => !STOP_WORDS.has(token))
+
+  const frequency = new Map<string, number>()
+  for (const token of tokens) {
+    frequency.set(token, (frequency.get(token) || 0) + 1)
+  }
+
+  return [...frequency.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([token]) => token)
+}
+
+const normalizeSkill = (value: string) => {
+  if (value.toLowerCase() === 'next.js') return 'Next.js'
+  if (value.toLowerCase() === 'node.js') return 'Node.js'
+  if (value.toLowerCase() === 'typescript') return 'TypeScript'
+  if (value.toLowerCase() === 'javascript') return 'JavaScript'
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+const formatDate = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+
 export default function Profile() {
-    const { userId } = useUser()
+  const { user, isLoaded, isSignedIn } = useClerkUser()
 
-    // Basic info
-    const [basic, setBasic] = useState({ name: '', email: '', phone: '', linkedin: '', github: '', summary: '' })
-    const updateBasic = (k: keyof typeof basic, v: string) => setBasic(p => ({ ...p, [k]: v }))
+  const githubAccount = useMemo(() => {
+    if (!user) return null
 
-    // Collections
-    const [skills, setSkills] = useState<Skill[]>([emptySkill()])
-    const [education, setEducation] = useState<Education[]>([emptyEducation()])
-    const [experience, setExperience] = useState<Experience[]>([emptyExperience()])
-    const [projects, setProjects] = useState<Project[]>([emptyProject()])
+    return user.externalAccounts?.find((account: any) => {
+      const provider = String(account.provider || account.providerSlug || '').toLowerCase()
+      return provider.includes('github')
+    }) || null
+  }, [user])
 
-    const completeness = getScore(basic, skills, education, experience, projects)
+  const githubUsername = (githubAccount as any)?.username || null
 
-    const addItem = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, empty: () => T) => setter(p => [...p, empty()])
-    const removeItem = <T extends { id: number }>(setter: React.Dispatch<React.SetStateAction<T[]>>, id: number) => setter(p => p.filter(x => x.id !== id))
-    const updateItem = <T extends { id: number }>(setter: React.Dispatch<React.SetStateAction<T[]>>, id: number, patch: Partial<T>) =>
-        setter(p => p.map(x => x.id === id ? { ...x, ...patch } : x))
+  const [repos, setRepos] = useState<GithubRepo[]>([])
+  const [loadingRepos, setLoadingRepos] = useState(false)
+  const [selectedRepoIds, setSelectedRepoIds] = useState<number[]>([])
+  const [generating, setGenerating] = useState(false)
+  const [generatedProfile, setGeneratedProfile] = useState<GeneratedProfile | null>(null)
 
-    const handleSave = (section: string) => {
-        // TODO: POST to backend API
-        toast.success(`${section} saved!`, { description: `User ID: ${userId || 'not logged in'}` })
+  useEffect(() => {
+    const fetchRepos = async () => {
+      if (!githubUsername) return
+
+      setLoadingRepos(true)
+      try {
+        const response = await fetch(`https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=100`)
+        if (!response.ok) throw new Error('Failed to load repositories.')
+
+        const data: GithubRepo[] = await response.json()
+        setRepos(data)
+      } catch (error) {
+        console.error(error)
+        toast.error('Could not load GitHub repositories.')
+      } finally {
+        setLoadingRepos(false)
+      }
     }
 
+    fetchRepos()
+  }, [githubUsername])
+
+  const toggleRepo = (repoId: number) => {
+    setSelectedRepoIds(prev => {
+      if (prev.includes(repoId)) return prev.filter(id => id !== repoId)
+      if (prev.length >= 3) {
+        toast.error('Select up to 3 repositories.')
+        return prev
+      }
+      return [...prev, repoId]
+    })
+  }
+
+  const buildGeneratedProfile = (selectedRepos: GithubRepo[], readmes: string[]) => {
+    const languages = [...new Set(selectedRepos.map(repo => repo.language).filter(Boolean) as string[])]
+    const repoContext = selectedRepos
+      .map(repo => `${repo.name} ${repo.description || ''} ${repo.language || ''}`)
+      .join(' ')
+
+    const combinedText = `${repoContext} ${readmes.join(' ')}`
+    const keywords = extractKeywords(combinedText, 16).map(normalizeSkill)
+
+    const skills = [...new Set([...
+      languages.map(normalizeSkill),
+      ...keywords,
+    ])].slice(0, 12)
+
+    const headlineSkills = skills.slice(0, 3).join(', ')
+    const headline = headlineSkills
+      ? `Project-driven developer focused on ${headlineSkills}`
+      : 'Project-driven software developer'
+
+    const repoNames = selectedRepos.map(repo => repo.name).join(', ')
+    const summary = `Built and maintained ${selectedRepos.length} selected repositories (${repoNames}). Core strengths include ${skills.slice(0, 6).join(', ') || 'software development'}, based on README and repository metadata analysis.`
+
+    const highlights = selectedRepos.map((repo, index) => {
+      const repoKeywords = extractKeywords(`${repo.description || ''} ${readmes[index] || ''}`, 4).map(normalizeSkill)
+      const focus = repoKeywords.length ? repoKeywords.join(', ') : (repo.language || 'general software engineering')
+      return `${repo.name}: ${repo.description || 'Implemented and maintained this project.'} Focus areas: ${focus}.`
+    })
+
+    return { headline, summary, skills, highlights }
+  }
+
+  const handleGenerateProfile = async () => {
+    if (selectedRepoIds.length < 2) {
+      toast.error('Select at least 2 repositories.')
+      return
+    }
+
+    const selectedRepos = repos.filter(repo => selectedRepoIds.includes(repo.id))
+    if (!selectedRepos.length) return
+
+    setGenerating(true)
+    try {
+      const readmes = await Promise.all(
+        selectedRepos.map(async repo => {
+          try {
+            const response = await fetch(`https://api.github.com/repos/${repo.owner.login}/${repo.name}/readme`, {
+              headers: { Accept: 'application/vnd.github.raw+json' },
+            })
+
+            if (!response.ok) return ''
+            return await response.text()
+          } catch {
+            return ''
+          }
+        }),
+      )
+
+      const result = buildGeneratedProfile(selectedRepos, readmes)
+      setGeneratedProfile(result)
+      toast.success('Profile generated from selected repositories.')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to generate profile.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  if (!isLoaded) {
     return (
-        <div className="p-8 max-w-4xl mx-auto">
-            <Toaster />
-
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Profile Builder</h1>
-                <p className="text-gray-500">Fill in your details — Applyzer uses this to generate tailored applications.</p>
-            </div>
-
-            {/* Completeness card */}
-            <div className="bg-white rounded-2xl border border-violet-100 p-5 shadow-sm mb-8">
-                <div className="flex items-center justify-between mb-3">
-                    <div>
-                        <p className="font-bold text-gray-900">Profile Completeness</p>
-                        <p className="text-sm text-gray-500">Complete your profile for better AI-generated resumes</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {completeness === 100 && <CheckCircle className="w-5 h-5 text-green-500" />}
-                        <span className="text-2xl font-extrabold text-gradient-violet inline-block">{completeness}%</span>
-                    </div>
-                </div>
-                <Progress value={completeness} className="h-2 bg-violet-50" />
-                <div className="flex flex-wrap gap-2 mt-3">
-                    {[
-                        { label: 'Basic Info', done: !!basic.name && !!basic.email },
-                        { label: 'Skills', done: skills.some(s => !!s.category) },
-                        { label: 'Education', done: education.some(e => !!e.degree) },
-                        { label: 'Experience', done: experience.some(e => !!e.role) },
-                        { label: 'Projects', done: projects.some(p => !!p.title) },
-                    ].map(({ label, done }) => (
-                        <Badge key={label} className={done ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}>
-                            {done ? '✓' : '○'} {label}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <Tabs defaultValue="basic" className="space-y-6">
-                <TabsList className="bg-violet-50 p-1 rounded-xl w-full">
-                    <TabsTrigger value="basic" className="flex gap-1.5 flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700"><User className="w-3.5 h-3.5" />Basic Info</TabsTrigger>
-                    <TabsTrigger value="skills" className="flex gap-1.5 flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700"><Code className="w-3.5 h-3.5" />Skills</TabsTrigger>
-                    <TabsTrigger value="education" className="flex gap-1.5 flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700"><GraduationCap className="w-3.5 h-3.5" />Education</TabsTrigger>
-                    <TabsTrigger value="experience" className="flex gap-1.5 flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700"><Briefcase className="w-3.5 h-3.5" />Experience</TabsTrigger>
-                    <TabsTrigger value="projects" className="flex gap-1.5 flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700"><FolderGit2 className="w-3.5 h-3.5" />Projects</TabsTrigger>
-                </TabsList>
-
-                {/* ── Tab 1: Basic Info ── */}
-                <TabsContent value="basic">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-5">
-                        <SectionHeader>Personal Information</SectionHeader>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label className="label-sm">Full Name *</label><Input className={fieldClass} placeholder="John Doe" value={basic.name} onChange={e => updateBasic('name', e.target.value)} /></div>
-                            <div><label className="label-sm">Email *</label><Input className={fieldClass} type="email" placeholder="john@example.com" value={basic.email} onChange={e => updateBasic('email', e.target.value)} /></div>
-                            <div><label className="label-sm">Phone</label><Input className={fieldClass} placeholder="+1 234 567 890" value={basic.phone} onChange={e => updateBasic('phone', e.target.value)} /></div>
-                            <div><label className="label-sm">LinkedIn URL</label><Input className={fieldClass} placeholder="linkedin.com/in/johndoe" value={basic.linkedin} onChange={e => updateBasic('linkedin', e.target.value)} /></div>
-                            <div><label className="label-sm">GitHub URL</label><Input className={fieldClass} placeholder="github.com/johndoe" value={basic.github} onChange={e => updateBasic('github', e.target.value)} /></div>
-                        </div>
-                        <div>
-                            <label className="label-sm">Professional Summary</label>
-                            <textarea
-                                className="w-full rounded-xl border border-gray-200 focus:border-violet-400 p-3 text-sm resize-none outline-none focus:ring-2 focus:ring-violet-100 text-gray-700 mt-1"
-                                rows={4}
-                                placeholder="A brief summary of your professional background, key skills, and career goals..."
-                                value={basic.summary}
-                                onChange={e => updateBasic('summary', e.target.value)}
-                            />
-                        </div>
-                        <Button onClick={() => handleSave('Basic Info')} className="gradient-violet text-white border-0 rounded-xl shadow-md shadow-violet-200 gap-2">
-                            <Save className="w-4 h-4" /> Save Basic Info
-                        </Button>
-                    </div>
-                </TabsContent>
-
-                {/* ── Tab 2: Skills ── */}
-                <TabsContent value="skills">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-                        <SectionHeader>Skills</SectionHeader>
-                        <p className="text-sm text-gray-500 -mt-2">Group skills by category (e.g., "Languages: Python, TypeScript, Go")</p>
-                        {skills.map((s) => (
-                            <div key={s.id} className="flex gap-3 items-start group">
-                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50/60 rounded-xl p-4 border border-gray-100">
-                                    <div><label className="label-sm">Category</label><Input className={fieldClass} placeholder="e.g. Languages" value={s.category} onChange={e => updateItem(setSkills, s.id, { category: e.target.value })} /></div>
-                                    <div><label className="label-sm">Skills (comma-separated)</label><Input className={fieldClass} placeholder="Python, TypeScript, Go" value={s.items} onChange={e => updateItem(setSkills, s.id, { items: e.target.value })} /></div>
-                                </div>
-                                {skills.length > 1 && (
-                                    <button onClick={() => removeItem(setSkills, s.id)} className="mt-6 text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => addItem(setSkills, emptySkill)} className="gap-2 rounded-xl border-dashed border-violet-200 text-violet-600 hover:bg-violet-50">
-                                <Plus className="w-4 h-4" /> Add Category
-                            </Button>
-                            <Button onClick={() => handleSave('Skills')} className="gradient-violet text-white border-0 rounded-xl gap-2">
-                                <Save className="w-4 h-4" /> Save Skills
-                            </Button>
-                        </div>
-                    </div>
-                </TabsContent>
-
-                {/* ── Tab 3: Education ── */}
-                <TabsContent value="education">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-                        <SectionHeader>Education</SectionHeader>
-                        {education.map((e) => (
-                            <div key={e.id} className="group bg-gray-50/60 rounded-xl p-4 border border-gray-100 space-y-3 relative">
-                                {education.length > 1 && (
-                                    <button onClick={() => removeItem(setEducation, e.id)} className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div><label className="label-sm">Degree / Course *</label><Input className={fieldClass} placeholder="B.Tech Computer Science" value={e.degree} onChange={ev => updateItem(setEducation, e.id, { degree: ev.target.value })} /></div>
-                                    <div><label className="label-sm">Institution *</label><Input className={fieldClass} placeholder="MIT" value={e.institution} onChange={ev => updateItem(setEducation, e.id, { institution: ev.target.value })} /></div>
-                                    <div><label className="label-sm">Graduation Year</label><Input className={fieldClass} placeholder="2024" value={e.year} onChange={ev => updateItem(setEducation, e.id, { year: ev.target.value })} /></div>
-                                </div>
-                                <div><label className="label-sm">Relevant Coursework</label><Input className={fieldClass} placeholder="Algorithms, ML, Systems Design..." value={e.coursework} onChange={ev => updateItem(setEducation, e.id, { coursework: ev.target.value })} /></div>
-                            </div>
-                        ))}
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => addItem(setEducation, emptyEducation)} className="gap-2 rounded-xl border-dashed border-violet-200 text-violet-600 hover:bg-violet-50">
-                                <Plus className="w-4 h-4" /> Add Education
-                            </Button>
-                            <Button onClick={() => handleSave('Education')} className="gradient-violet text-white border-0 rounded-xl gap-2">
-                                <Save className="w-4 h-4" /> Save Education
-                            </Button>
-                        </div>
-                    </div>
-                </TabsContent>
-
-                {/* ── Tab 4: Experience ── */}
-                <TabsContent value="experience">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-                        <SectionHeader>Work Experience</SectionHeader>
-                        {experience.map((ex) => (
-                            <div key={ex.id} className="group bg-gray-50/60 rounded-xl p-4 border border-gray-100 space-y-3 relative">
-                                {experience.length > 1 && (
-                                    <button onClick={() => removeItem(setExperience, ex.id)} className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div><label className="label-sm">Role / Title *</label><Input className={fieldClass} placeholder="Software Engineer Intern" value={ex.role} onChange={e => updateItem(setExperience, ex.id, { role: e.target.value })} /></div>
-                                    <div><label className="label-sm">Company *</label><Input className={fieldClass} placeholder="Google" value={ex.company} onChange={e => updateItem(setExperience, ex.id, { company: e.target.value })} /></div>
-                                    <div><label className="label-sm">Location</label><Input className={fieldClass} placeholder="San Francisco, CA" value={ex.location} onChange={e => updateItem(setExperience, ex.id, { location: e.target.value })} /></div>
-                                    <div><label className="label-sm">Duration</label><Input className={fieldClass} placeholder="Jun 2023 – Aug 2023" value={ex.duration} onChange={e => updateItem(setExperience, ex.id, { duration: e.target.value })} /></div>
-                                </div>
-                                <div>
-                                    <label className="label-sm">Achievements (one per line)</label>
-                                    <textarea
-                                        className="w-full rounded-xl border border-gray-200 focus:border-violet-400 p-3 text-sm resize-none outline-none focus:ring-2 focus:ring-violet-100 text-gray-700 mt-1"
-                                        rows={3}
-                                        placeholder={"- Increased API throughput by 40% by refactoring the cache layer\n- Shipped 3 features used by 2M+ users"}
-                                        value={ex.achievements}
-                                        onChange={e => updateItem(setExperience, ex.id, { achievements: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => addItem(setExperience, emptyExperience)} className="gap-2 rounded-xl border-dashed border-violet-200 text-violet-600 hover:bg-violet-50">
-                                <Plus className="w-4 h-4" /> Add Experience
-                            </Button>
-                            <Button onClick={() => handleSave('Experience')} className="gradient-violet text-white border-0 rounded-xl gap-2">
-                                <Save className="w-4 h-4" /> Save Experience
-                            </Button>
-                        </div>
-                    </div>
-                </TabsContent>
-
-                {/* ── Tab 5: Projects ── */}
-                <TabsContent value="projects">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-                        <SectionHeader>Projects</SectionHeader>
-                        {projects.map((p) => (
-                            <div key={p.id} className="group bg-gray-50/60 rounded-xl p-4 border border-gray-100 space-y-3 relative">
-                                {projects.length > 1 && (
-                                    <button onClick={() => removeItem(setProjects, p.id)} className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div><label className="label-sm">Project Title *</label><Input className={fieldClass} placeholder="Applyzer" value={p.title} onChange={e => updateItem(setProjects, p.id, { title: e.target.value })} /></div>
-                                    <div><label className="label-sm">Tech Stack</label><Input className={fieldClass} placeholder="React, FastAPI, PostgreSQL" value={p.tech} onChange={e => updateItem(setProjects, p.id, { tech: e.target.value })} /></div>
-                                    <div className="md:col-span-2"><label className="label-sm">Description</label>
-                                        <textarea className="w-full rounded-xl border border-gray-200 focus:border-violet-400 p-3 text-sm resize-none outline-none focus:ring-2 focus:ring-violet-100 text-gray-700 mt-1" rows={2}
-                                            placeholder="What it does, impact, complexities solved..."
-                                            value={p.description} onChange={e => updateItem(setProjects, p.id, { description: e.target.value })} />
-                                    </div>
-                                    <div className="flex gap-2 items-center"><LinkIcon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-5" /><div className="flex-1"><label className="label-sm">Project URL</label><Input className={fieldClass} placeholder="github.com/..." value={p.url} onChange={e => updateItem(setProjects, p.id, { url: e.target.value })} /></div></div>
-                                    <div><label className="label-sm">Keywords (for ATS matching)</label><Input className={fieldClass} placeholder="REST API, microservices, real-time" value={p.keywords} onChange={e => updateItem(setProjects, p.id, { keywords: e.target.value })} /></div>
-                                </div>
-                            </div>
-                        ))}
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => addItem(setProjects, emptyProject)} className="gap-2 rounded-xl border-dashed border-violet-200 text-violet-600 hover:bg-violet-50">
-                                <Plus className="w-4 h-4" /> Add Project
-                            </Button>
-                            <Button onClick={() => handleSave('Projects')} className="gradient-violet text-white border-0 rounded-xl gap-2">
-                                <Save className="w-4 h-4" /> Save Projects
-                            </Button>
-                        </div>
-                    </div>
-                </TabsContent>
-            </Tabs>
+      <div className="p-8 max-w-5xl mx-auto">
+        <Toaster />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex items-center gap-3 text-gray-600">
+          <Loader2 className="w-5 h-5 animate-spin" /> Loading profile...
         </div>
+      </div>
     )
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="p-8 max-w-5xl mx-auto">
+        <Toaster />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Profile From GitHub</h1>
+          <p className="text-gray-500">Please sign in to view repositories and generate your profile.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-8 max-w-6xl mx-auto">
+      <Toaster />
+
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Auto Profile Builder</h1>
+        <p className="text-gray-500">Select 2-3 GitHub repositories, then generate a profile summary from their README keywords.</p>
+      </div>
+
+      {!githubUsername && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-5 mb-6">
+          GitHub account not found on this Clerk user. Connect GitHub in Clerk to use this feature.
+        </div>
+      )}
+
+      {githubUsername && (
+        <>
+          <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+            <div className="flex items-center gap-3 text-gray-700">
+              <Github className="w-5 h-5" />
+              <div>
+                <p className="font-semibold">{githubUsername}</p>
+                <p className="text-sm text-gray-500">Public repositories: {repos.length}</p>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleGenerateProfile}
+              disabled={generating || selectedRepoIds.length < 2}
+              className="gradient-violet text-white border-0 rounded-xl gap-2"
+            >
+              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              Generate Profile
+            </Button>
+          </div>
+
+          {loadingRepos ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex items-center gap-3 text-gray-600">
+              <Loader2 className="w-5 h-5 animate-spin" /> Loading repositories...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+              {repos.map(repo => {
+                const selected = selectedRepoIds.includes(repo.id)
+                const limitReached = selectedRepoIds.length >= 3 && !selected
+
+                return (
+                  <button
+                    key={repo.id}
+                    onClick={() => toggleRepo(repo.id)}
+                    disabled={limitReached}
+                    className={`text-left bg-white rounded-2xl border p-4 shadow-sm transition-all ${selected ? 'border-violet-400 ring-2 ring-violet-200' : 'border-gray-100 hover:border-violet-200'} ${limitReached ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-bold text-gray-900 truncate">{repo.name}</h3>
+                      <a
+                        href={repo.html_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="text-gray-400 hover:text-gray-700"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+
+                    <p className="text-sm text-gray-500 line-clamp-2 min-h-[2.5rem]">{repo.description || 'No description available.'}</p>
+
+                    <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                      <span>{repo.language || 'Unknown language'}</span>
+                      <span>Updated {formatDate(repo.updated_at)}</span>
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <Badge className="bg-gray-100 text-gray-700 border-0">Stars {repo.stargazers_count}</Badge>
+                      <Badge className="bg-gray-100 text-gray-700 border-0">Forks {repo.forks_count}</Badge>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {generatedProfile && (
+            <div className="bg-white rounded-2xl border border-violet-100 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">Generated Profile</h2>
+              <p className="text-violet-700 font-medium mb-4">{generatedProfile.headline}</p>
+
+              <p className="text-gray-700 mb-5">{generatedProfile.summary}</p>
+
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-gray-900 mb-2">Skills from selected repositories</p>
+                <div className="flex flex-wrap gap-2">
+                  {generatedProfile.skills.map(skill => (
+                    <Badge key={skill} className="bg-violet-50 text-violet-700 border-violet-100">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-gray-900 mb-2">Project-based highlights</p>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {generatedProfile.highlights.map(item => (
+                    <li key={item} className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
 }
