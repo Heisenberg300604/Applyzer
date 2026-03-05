@@ -1,9 +1,9 @@
-import { SignIn } from '@clerk/react'
+import { SignUp } from '@clerk/react'
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div className="min-h-screen gradient-hero flex items-center justify-center p-6">
-      <SignIn />
+      <SignUp forceRedirectUrl="/dashboard" />
     </div>
   )
 }
