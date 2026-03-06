@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-
 const companies = [
     { name: 'Google', logo: '🔵' },
     { name: 'Meta', logo: '📘' },

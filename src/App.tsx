@@ -3,8 +3,8 @@ import { UserProvider } from '@/context/UserContext'
 
 // Public pages
 import Landing from '@/pages/Landing'
-import Signup from '@/pages/Signup'
-import Login from '@/pages/Login'
+import SignInPage from '@/pages/SignIn'
+import SignUpPage from '@/pages/SignUp'
 
 // Layout & authenticated pages
 import DashboardLayout from '@/components/DashboardLayout'
@@ -36,8 +36,8 @@ export default function App() {
         <Routes>
           {/* ── Public routes ─────────────────────────────────────── */}
           <Route path="/" element={<Landing />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/sign-in/*" element={<SignInPage />} />
+          <Route path="/sign-up/*" element={<SignUpPage />} />
 
           {/* ── Authenticated routes (shared DashboardLayout sidebar) ── */}
           <Route element={<DashboardLayout />}>

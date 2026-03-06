@@ -26,7 +26,7 @@ const SAMPLE_RESUME_SECTIONS = [
     },
     {
         heading: 'Projects',
-        items: [{ title: 'ApplyBot', org: 'github.com/user/applybot', bullets: ['AI-powered job application automation using LangGraph + OpenAI. Sends personalized resumes & cold emails at scale.'] }]
+        items: [{ title: 'Applyzer', org: 'github.com/user/Applyzer', bullets: ['AI-powered job application automation using LangGraph + OpenAI. Sends personalized resumes & cold emails at scale.'] }]
     },
 ]
 
@@ -203,7 +203,7 @@ export default function Resume() {
                                 <Badge className="bg-blue-50 text-blue-700 border-blue-200">Personalized</Badge>
                             </div>
                             <div className="bg-gray-50 rounded-xl border border-gray-100 p-6 text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
-                                {SAMPLE_COLD_DM.replace('{FirstName}', 'Sarah').replace('{Company}', 'Google').replace('{specific_thing}', 'the recent work on Google DeepMind integration').replace('{Role}', 'Software Engineer').replace('{relevant_skill}', 'distributed systems').replace('{project}', 'ApplyBot').replace('{achievement}', 'automated 10,000+ job applications')}
+                                {SAMPLE_COLD_DM.replace('{FirstName}', 'Sarah').replace('{Company}', 'Google').replace('{specific_thing}', 'the recent work on Google DeepMind integration').replace('{Role}', 'Software Engineer').replace('{relevant_skill}', 'distributed systems').replace('{project}', 'Applyzer').replace('{achievement}', 'automated 10,000+ job applications')}
                             </div>
                             <Button variant="outline" onClick={() => handleCopy(SAMPLE_COLD_DM)} className="rounded-xl border-violet-200 text-violet-700 gap-2">
                                 <Copy className="w-4 h-4" /> Copy DM

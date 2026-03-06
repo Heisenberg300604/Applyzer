@@ -9,7 +9,7 @@ const features = [
         color: 'from-violet-500 to-purple-600',
         bg: 'bg-violet-50',
         title: 'AI Resume Generation',
-        desc: 'ApplyBot generates a perfectly tailored LaTeX-formatted PDF resume for each job — highlighting exactly what matters to that employer.',
+        desc: 'Applyzer generates a perfectly tailored LaTeX-formatted PDF resume for each job — highlighting exactly what matters to that employer.',
         tag: 'Core Feature',
     },
     {
@@ -41,7 +41,7 @@ const features = [
         color: 'from-amber-500 to-orange-500',
         bg: 'bg-amber-50',
         title: 'Cold DM Generator',
-        desc: 'Beyond emails — ApplyBot crafts personalized LinkedIn cold DMs based on the hiring manager\'s profile and your background.',
+        desc: 'Beyond emails — Applyzer crafts personalized LinkedIn cold DMs based on the hiring manager\'s profile and your background.',
         tag: 'Outreach',
     },
     {
@@ -78,7 +78,7 @@ export default function FeaturesSection() {
                         <span className="text-gradient-violet">Built to Win</span>
                     </h2>
                     <p className="text-lg text-gray-500 max-w-xl mx-auto">
-                        Stop spending hours per application. ApplyBot handles the entire pipeline — from discovery to inbox.
+                        Stop spending hours per application. Applyzer handles the entire pipeline — from discovery to inbox.
                     </p>
                 </motion.div>
 

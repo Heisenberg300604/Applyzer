@@ -23,10 +23,10 @@ const INITIAL_NOTIFS: Notification[] = [
     { id: 1, type: 'reply', title: 'Reply received from Google!', body: 'A recruiter at Google has replied to your application for Software Engineer. Check your Gmail to respond.', company: 'Google', logo: '🔵', time: '2h ago', read: false },
     { id: 2, type: 'reply', title: 'Reply received from Apple!', body: 'Good news! Your iOS Engineer application received a response from Apple\'s hiring team.', company: 'Apple', logo: '🍎', time: '5h ago', read: false },
     { id: 3, type: 'followup', title: 'Follow-up reminder: OpenAI', body: 'It has been 7 days since you applied to ML Engineer at OpenAI with no reply. Consider sending a follow-up.', company: 'OpenAI', logo: '🟢', time: '1d ago', read: false },
-    { id: 4, type: 'followup', title: 'Follow-up reminder: AWS', body: 'No reply from AWS DevOps Engineer in 7 days. ApplyBot can send an automated follow-up for you.', company: 'AWS', logo: '🟠', time: '2d ago', read: true },
+    { id: 4, type: 'followup', title: 'Follow-up reminder: AWS', body: 'No reply from AWS DevOps Engineer in 7 days. Applyzer can send an automated follow-up for you.', company: 'AWS', logo: '🟠', time: '2d ago', read: true },
     { id: 5, type: 'reply', title: 'Airbnb replied to your application', body: 'Your Data Engineer application at Airbnb received a positive response! Log in to Gmail to view the full email.', company: 'Airbnb', logo: '🏠', time: '2d ago', read: true },
     { id: 6, type: 'warning', title: 'Cloudflare email bounced', body: 'Your application email to Cloudflare bounced. The HR email address may be invalid. Please verify and retry.', company: 'Cloudflare', logo: '🔶', time: '3d ago', read: true },
-    { id: 7, type: 'info', title: '5 new jobs matched your profile', body: 'ApplyBot found 5 new roles matching your skills in Software Engineering and Go. Check Job Search to review.', company: '', logo: '🤖', time: '4d ago', read: true },
+    { id: 7, type: 'info', title: '5 new jobs matched your profile', body: 'Applyzer found 5 new roles matching your skills in Software Engineering and Go. Check Job Search to review.', company: '', logo: '🤖', time: '4d ago', read: true },
 ]
 
 const typeMeta: Record<NotifType, { icon: React.ElementType; color: string; badge: string }> = {

@@ -80,7 +80,7 @@ export default function DashboardLayout() {
                                 </Avatar>
                                 <div className="flex-1 text-left min-w-0">
                                     <p className="text-sm font-semibold text-gray-900 truncate">User #{userId || '—'}</p>
-                                    <p className="text-xs text-gray-400">applybot account</p>
+                                    <p className="text-xs text-gray-400">Applyzer account</p>
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                             </button>
