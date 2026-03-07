@@ -4,7 +4,7 @@ import { UserProvider } from '@/context/UserContext'
 // Public pages
 import Landing from '@/pages/Landing'
 import SignInPage from '@/pages/SignIn'
-import SignUpPage from '@/pages/SignUp'
+import SignUpPage from '@/pages/Signup'
 
 // Layout & authenticated pages
 import DashboardLayout from '@/components/DashboardLayout'

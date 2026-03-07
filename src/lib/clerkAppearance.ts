@@ -1,5 +1,3 @@
-import type { Appearance } from '@clerk/react'
-
 /**
  * Centralized Clerk appearance configuration.
  * Passed to <ClerkProvider appearance={clerkAppearance}> in main.tsx so that
@@ -17,7 +15,7 @@ import type { Appearance } from '@clerk/react'
  *   Radius         : 0.75 rem
  */
 
-export const clerkAppearance: Appearance = {
+export const clerkAppearance = {
     /* ── Layout ─────────────────────────────────────────────────────────── */
     layout: {
         // Don't render a Clerk logo inside the card — we supply our own branding
