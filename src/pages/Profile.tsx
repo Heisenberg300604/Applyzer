@@ -209,6 +209,7 @@ export default function Profile() {
       const now = new Date().toISOString()
       await upsertProjects(
         repoDetails.map((item, index) => ({
+          id: crypto.randomUUID(),
           profile_id: user.id,
           github_repo_name: item.repo.name,
           github_repo_url: item.repo.html_url,
@@ -233,7 +234,8 @@ export default function Profile() {
       toast.success('Profile generated and projects synced to Supabase.')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to generate profile.')
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      toast.error('Failed to generate profile.', { description: message.slice(0, 280) })
     } finally {
       setGenerating(false)
     }

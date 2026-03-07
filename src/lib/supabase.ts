@@ -5,6 +5,7 @@ type ClerkUserSyncPayload = {
 }
 
 export type ProjectUpsertPayload = {
+  id?: string
   profile_id: string
   github_repo_name: string
   github_repo_url: string
@@ -79,7 +80,10 @@ export async function upsertProjects(payload: ProjectUpsertPayload[]) {
     },
   )
 
-  if (upsertResponse.ok) return
+  if (upsertResponse.ok) {
+    console.info(`Supabase projects sync succeeded for ${payload.length} repo(s) on table "${SUPABASE_PROJECTS_TABLE}"`)
+    return
+  }
 
   const fallbackInsertResponse = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_PROJECTS_TABLE}`, {
     method: 'POST',
@@ -88,7 +92,12 @@ export async function upsertProjects(payload: ProjectUpsertPayload[]) {
   })
 
   if (!fallbackInsertResponse.ok) {
-    const errorText = await fallbackInsertResponse.text()
-    throw new Error(`Supabase projects write failed (${fallbackInsertResponse.status}): ${errorText}`)
+    const upsertErrorText = await upsertResponse.text()
+    const fallbackErrorText = await fallbackInsertResponse.text()
+    throw new Error(
+      `Supabase projects write failed. Upsert (${upsertResponse.status}): ${upsertErrorText}. Fallback insert (${fallbackInsertResponse.status}): ${fallbackErrorText}`,
+    )
   }
+
+  console.info(`Supabase projects fallback insert succeeded for ${payload.length} repo(s) on table "${SUPABASE_PROJECTS_TABLE}"`)
 }
