@@ -35,6 +35,15 @@ export type SupabaseJobRow = {
   application_email?: string | null
 }
 
+type ProjectSignalRow = {
+  title?: string | null
+  description?: string | null
+  tech_stack?: string[] | null
+  skills_demonstrated?: string[] | null
+  github_topics?: string[] | null
+  features?: string[] | null
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 const SUPABASE_USER_TABLE = (import.meta.env.VITE_SUPABASE_USER_TABLE as string | undefined) || 'profiles'
@@ -137,4 +146,85 @@ export async function getJobsFromSupabase(limit = 100): Promise<SupabaseJobRow[]
   }
 
   return response.json()
+}
+
+const splitWords = (value: string) =>
+  value
+    .toLowerCase()
+    .split(/[^a-z0-9+#.-]+/)
+    .map(token => token.trim())
+    .filter(token => token.length >= 3)
+
+const collectProfileKeywords = (rows: ProjectSignalRow[]) => {
+  const stop = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'api', 'app', 'project', 'application', 'using'])
+  const keywords = new Set<string>()
+
+  for (const row of rows) {
+    for (const item of [...(row.tech_stack || []), ...(row.skills_demonstrated || []), ...(row.github_topics || []), ...(row.features || [])]) {
+      for (const token of splitWords(String(item))) {
+        if (!stop.has(token)) keywords.add(token)
+      }
+    }
+    for (const token of splitWords(`${row.title || ''} ${row.description || ''}`)) {
+      if (!stop.has(token)) keywords.add(token)
+    }
+  }
+
+  return [...keywords].slice(0, 8)
+}
+
+export async function getProfileMatchedJobs(profileId: string, limit = 100): Promise<SupabaseJobRow[]> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
+  }
+
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json',
+  }
+
+  const projectSignalsQuery = new URLSearchParams({
+    select: 'title,description,tech_stack,skills_demonstrated,github_topics,features',
+    profile_id: `eq.${profileId}`,
+    limit: '50',
+  })
+
+  const projectsResponse = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_PROJECTS_TABLE}?${projectSignalsQuery.toString()}`, {
+    headers,
+  })
+
+  if (!projectsResponse.ok) {
+    const errorText = await projectsResponse.text()
+    throw new Error(`Supabase profile-signal fetch failed (${projectsResponse.status}): ${errorText}`)
+  }
+
+  const signals = (await projectsResponse.json()) as ProjectSignalRow[]
+  const keywords = collectProfileKeywords(signals)
+  if (!keywords.length) return []
+
+  const orTerms: string[] = []
+  for (const keyword of keywords) {
+    const safe = keyword.replace(/[%(),]/g, '')
+    orTerms.push(`title.ilike.*${safe}*`)
+    orTerms.push(`description.ilike.*${safe}*`)
+    orTerms.push(`company.ilike.*${safe}*`)
+  }
+
+  const jobsQuery = new URLSearchParams({
+    select: 'id,title,company,description,location,application_email',
+    limit: String(limit),
+    or: `(${orTerms.join(',')})`,
+  })
+
+  const jobsResponse = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_JOBS_TABLE}?${jobsQuery.toString()}`, {
+    headers,
+  })
+
+  if (!jobsResponse.ok) {
+    const errorText = await jobsResponse.text()
+    throw new Error(`Supabase matched-jobs fetch failed (${jobsResponse.status}): ${errorText}`)
+  }
+
+  return jobsResponse.json()
 }

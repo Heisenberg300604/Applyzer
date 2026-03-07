@@ -20,7 +20,8 @@ import {
   Upload,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { getJobsFromSupabase, type SupabaseJobRow } from '@/lib/supabase'
+import { getProfileMatchedJobs, type SupabaseJobRow } from '@/lib/supabase'
+import { useUser } from '@/context/UserContext'
 
 type Job = {
   id: string
@@ -149,6 +150,7 @@ const mapSupabaseJob = (job: SupabaseJobRow): Job => ({
 })
 
 export default function Jobs() {
+  const { userId } = useUser()
   const [query, setQuery] = useState('')
   const [locationF, setLocationF] = useState('all')
   const [typeF, setTypeF] = useState('all')
@@ -162,20 +164,30 @@ export default function Jobs() {
 
   useEffect(() => {
     const loadJobs = async () => {
+      if (!userId) {
+        setJobs([])
+        setLoading(false)
+        return
+      }
       try {
-        const supabaseJobs = await getJobsFromSupabase(200)
+        const supabaseJobs = await getProfileMatchedJobs(userId, 200)
         setJobs(supabaseJobs.map(mapSupabaseJob))
         setSelected([])
         setSaved([])
+        if (!supabaseJobs.length) {
+          toast.info('No matched jobs found for your profile yet.', {
+            description: 'Add/select more projects first so we can match jobs by your extracted skills.',
+          })
+        }
       } catch (error) {
         console.error('Failed to fetch jobs from Supabase:', error)
-        toast.error('Could not load jobs from Supabase.')
+        toast.error('Could not load profile-matched jobs.')
       } finally {
         setLoading(false)
       }
     }
     void loadJobs()
-  }, [])
+  }, [userId])
 
   const filtered = jobs.filter(j => {
     const q = query.toLowerCase()
