@@ -13,7 +13,7 @@ export const ContainerScroll = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"],
+    offset: ["start end", "center center"],
   });
   const [isMobile, setIsMobile] = React.useState(false);
 
