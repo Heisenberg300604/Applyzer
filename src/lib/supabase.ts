@@ -27,18 +27,12 @@ export type ProjectUpsertPayload = {
 }
 
 export type SupabaseJobRow = {
-  id: string
+  id?: string | null
   title?: string | null
   company?: string | null
   description?: string | null
   location?: string | null
-  salary_range?: string | null
-  salary?: string | null
-  requirements?: string[] | string | null
-  tech_stack?: string[] | string | null
-  posted_date?: string | null
-  fetched_at?: string | null
-  created_at?: string | null
+  application_email?: string | null
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -124,8 +118,8 @@ export async function getJobsFromSupabase(limit = 100): Promise<SupabaseJobRow[]
   }
 
   const query = new URLSearchParams({
-    select: 'id,title,company,description,location,salary_range,salary,requirements,tech_stack,posted_date,fetched_at,created_at',
-    order: 'created_at.desc',
+    select: 'id,title,company,description,location,application_email',
+    order: 'title.asc',
     limit: String(limit),
   })
 

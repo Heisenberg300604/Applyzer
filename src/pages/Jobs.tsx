@@ -124,29 +124,26 @@ const parseJobsFromCsv = (csvText: string): Job[] => {
     .filter((job): job is Job => Boolean(job))
 }
 
-const formatDate = (value?: string | null) => {
-  if (!value) return 'Recently posted'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-}
+const makeFallbackId = (job: SupabaseJobRow) => `${job.title || 'job'}-${job.company || 'company'}-${job.location || 'location'}`.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
-const toList = (value: SupabaseJobRow['requirements'] | SupabaseJobRow['tech_stack']) => {
+const inferTagsFromDescription = (value?: string | null) => {
   if (!value) return []
-  if (Array.isArray(value)) return value.map(String)
-  if (typeof value === 'string') return value.split(/[|,;]/).map(item => item.trim()).filter(Boolean)
-  return []
+  const tokens = value
+    .toLowerCase()
+    .match(/[a-z][a-z0-9+#.-]{2,}/g) || []
+  const stop = new Set(['the', 'and', 'for', 'with', 'you', 'your', 'this', 'that', 'are', 'from', 'will', 'our', 'job', 'role', 'team'])
+  return [...new Set(tokens.filter(token => !stop.has(token)))].slice(0, 4).map(token => token[0].toUpperCase() + token.slice(1))
 }
 
 const mapSupabaseJob = (job: SupabaseJobRow): Job => ({
-  id: job.id,
+  id: String(job.id || makeFallbackId(job)),
   title: job.title || 'Untitled Role',
   company: job.company || 'Unknown Company',
   location: job.location || 'Location not specified',
   type: (job.location || '').toLowerCase().includes('remote') ? 'Remote' : 'Full-time',
-  salary: job.salary_range || job.salary || 'Not specified',
-  tags: [...toList(job.requirements), ...toList(job.tech_stack)].slice(0, 4),
-  posted: formatDate(job.posted_date || job.fetched_at || job.created_at),
+  salary: 'Not specified',
+  tags: inferTagsFromDescription(job.description),
+  posted: 'Recently posted',
   logo: (job.company || 'UC').split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase(),
   description: job.description || '',
 })
