@@ -178,6 +178,8 @@ export default function Jobs() {
           toast.info('No matched jobs found for your profile yet.', {
             description: 'Add/select more projects first so we can match jobs by your extracted skills.',
           })
+        } else {
+          toast.success(`Found ${supabaseJobs.length} profile-matched job(s).`)
         }
       } catch (error) {
         console.error('Failed to fetch jobs from Supabase:', error)

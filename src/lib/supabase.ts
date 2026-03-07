@@ -38,10 +38,10 @@ export type SupabaseJobRow = {
 type ProjectSignalRow = {
   title?: string | null
   description?: string | null
-  tech_stack?: string[] | null
-  skills_demonstrated?: string[] | null
-  github_topics?: string[] | null
-  features?: string[] | null
+  tech_stack?: string[] | string | null
+  skills_demonstrated?: string[] | string | null
+  github_topics?: string[] | string | null
+  features?: string[] | string | null
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -155,14 +155,57 @@ const splitWords = (value: string) =>
     .map(token => token.trim())
     .filter(token => token.length >= 3)
 
+const normalizeArrayish = (value: string[] | string | null | undefined) => {
+  if (!value) return [] as string[]
+  if (Array.isArray(value)) return value.map(String)
+  const trimmed = String(value).trim()
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    return trimmed
+      .slice(1, -1)
+      .split(',')
+      .map(item => item.trim().replace(/^"|"$/g, ''))
+      .filter(Boolean)
+  }
+  return trimmed
+    .split(/[|,;]/)
+    .map(item => item.trim())
+    .filter(Boolean)
+}
+
 const collectProfileKeywords = (rows: ProjectSignalRow[]) => {
   const stop = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'api', 'app', 'project', 'application', 'using'])
   const keywords = new Set<string>()
+  const expansions: Record<string, string[]> = {
+    react: ['frontend', 'javascript', 'typescript', 'web'],
+    next: ['frontend', 'web', 'javascript', 'typescript'],
+    node: ['backend', 'javascript', 'api'],
+    django: ['backend', 'python', 'api'],
+    flask: ['backend', 'python', 'api'],
+    fastapi: ['backend', 'python', 'api'],
+    html: ['frontend', 'web'],
+    css: ['frontend', 'web'],
+    tailwind: ['frontend', 'css', 'web'],
+    javascript: ['frontend', 'web'],
+    typescript: ['frontend', 'backend', 'web'],
+    postgres: ['database', 'sql', 'backend'],
+    supabase: ['database', 'backend', 'sql'],
+  }
 
   for (const row of rows) {
-    for (const item of [...(row.tech_stack || []), ...(row.skills_demonstrated || []), ...(row.github_topics || []), ...(row.features || [])]) {
+    const signalItems = [
+      ...normalizeArrayish(row.tech_stack),
+      ...normalizeArrayish(row.skills_demonstrated),
+      ...normalizeArrayish(row.github_topics),
+      ...normalizeArrayish(row.features),
+    ]
+
+    for (const item of signalItems) {
       for (const token of splitWords(String(item))) {
-        if (!stop.has(token)) keywords.add(token)
+        if (stop.has(token)) continue
+        keywords.add(token)
+        for (const expanded of expansions[token] || []) {
+          if (!stop.has(expanded)) keywords.add(expanded)
+        }
       }
     }
     for (const token of splitWords(`${row.title || ''} ${row.description || ''}`)) {
@@ -170,7 +213,7 @@ const collectProfileKeywords = (rows: ProjectSignalRow[]) => {
     }
   }
 
-  return [...keywords].slice(0, 8)
+  return [...keywords].slice(0, 12)
 }
 
 export async function getProfileMatchedJobs(profileId: string, limit = 100): Promise<SupabaseJobRow[]> {
@@ -202,29 +245,30 @@ export async function getProfileMatchedJobs(profileId: string, limit = 100): Pro
   const signals = (await projectsResponse.json()) as ProjectSignalRow[]
   const keywords = collectProfileKeywords(signals)
   if (!keywords.length) return []
+  const unique = new Map<string, SupabaseJobRow>()
+  const perKeywordLimit = Math.max(10, Math.ceil(limit / Math.max(1, keywords.length)))
 
-  const orTerms: string[] = []
   for (const keyword of keywords) {
     const safe = keyword.replace(/[%(),]/g, '')
-    orTerms.push(`title.ilike.*${safe}*`)
-    orTerms.push(`description.ilike.*${safe}*`)
-    orTerms.push(`company.ilike.*${safe}*`)
+    if (!safe) continue
+
+    const jobsQuery = new URLSearchParams({
+      select: 'id,title,company,description,location,application_email',
+      limit: String(perKeywordLimit),
+      or: `(title.ilike.*${safe}*,description.ilike.*${safe}*,company.ilike.*${safe}*)`,
+    })
+
+    const jobsResponse = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_JOBS_TABLE}?${jobsQuery.toString()}`, { headers })
+    if (!jobsResponse.ok) continue
+
+    const rows = (await jobsResponse.json()) as SupabaseJobRow[]
+    for (const row of rows) {
+      const key = String(row.id || `${row.title || ''}-${row.company || ''}-${row.location || ''}`)
+      if (!unique.has(key)) unique.set(key, row)
+      if (unique.size >= limit) break
+    }
+    if (unique.size >= limit) break
   }
 
-  const jobsQuery = new URLSearchParams({
-    select: 'id,title,company,description,location,application_email',
-    limit: String(limit),
-    or: `(${orTerms.join(',')})`,
-  })
-
-  const jobsResponse = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_JOBS_TABLE}?${jobsQuery.toString()}`, {
-    headers,
-  })
-
-  if (!jobsResponse.ok) {
-    const errorText = await jobsResponse.text()
-    throw new Error(`Supabase matched-jobs fetch failed (${jobsResponse.status}): ${errorText}`)
-  }
-
-  return jobsResponse.json()
+  return [...unique.values()].slice(0, limit)
 }
