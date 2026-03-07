@@ -26,10 +26,26 @@ export type ProjectUpsertPayload = {
   readme_raw?: string | null
 }
 
+export type SupabaseJobRow = {
+  id: string
+  title?: string | null
+  company?: string | null
+  description?: string | null
+  location?: string | null
+  salary_range?: string | null
+  salary?: string | null
+  requirements?: string[] | string | null
+  tech_stack?: string[] | string | null
+  posted_date?: string | null
+  fetched_at?: string | null
+  created_at?: string | null
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 const SUPABASE_USER_TABLE = (import.meta.env.VITE_SUPABASE_USER_TABLE as string | undefined) || 'profiles'
 const SUPABASE_PROJECTS_TABLE = (import.meta.env.VITE_SUPABASE_PROJECTS_TABLE as string | undefined) || 'projects'
+const SUPABASE_JOBS_TABLE = (import.meta.env.VITE_SUPABASE_JOBS_TABLE as string | undefined) || 'jobs'
 
 export async function upsertClerkUser(payload: ClerkUserSyncPayload) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -100,4 +116,31 @@ export async function upsertProjects(payload: ProjectUpsertPayload[]) {
   }
 
   console.info(`Supabase projects fallback insert succeeded for ${payload.length} repo(s) on table "${SUPABASE_PROJECTS_TABLE}"`)
+}
+
+export async function getJobsFromSupabase(limit = 100): Promise<SupabaseJobRow[]> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
+  }
+
+  const query = new URLSearchParams({
+    select: 'id,title,company,description,location,salary_range,salary,requirements,tech_stack,posted_date,fetched_at,created_at',
+    order: 'created_at.desc',
+    limit: String(limit),
+  })
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_JOBS_TABLE}?${query.toString()}`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Supabase jobs fetch failed (${response.status}): ${errorText}`)
+  }
+
+  return response.json()
 }

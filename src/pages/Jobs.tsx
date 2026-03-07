@@ -20,7 +20,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { getJobs, type ApiJob } from '@/lib/api'
+import { getJobsFromSupabase, type SupabaseJobRow } from '@/lib/supabase'
 
 type Job = {
   id: string
@@ -34,12 +34,6 @@ type Job = {
   logo: string
   description?: string
 }
-
-const MOCK_JOBS: Job[] = [
-  { id: '1', title: 'Software Engineer', company: 'Google', location: 'Mountain View, CA', type: 'Full-time', salary: '$170K-$230K', tags: ['Python', 'Go', 'Kubernetes'], posted: '2h ago', logo: 'GO' },
-  { id: '2', title: 'ML Engineer', company: 'OpenAI', location: 'San Francisco, CA', type: 'Full-time', salary: '$200K-$280K', tags: ['PyTorch', 'CUDA', 'LLMs'], posted: '5h ago', logo: 'OA' },
-  { id: '3', title: 'Frontend Engineer', company: 'Vercel', location: 'Remote', type: 'Remote', salary: '$120K-$160K', tags: ['React', 'Next.js', 'TypeScript'], posted: '1d ago', logo: 'VE' },
-]
 
 const typeColors: Record<string, string> = {
   'Full-time': 'bg-blue-50 text-blue-700 border-blue-100',
@@ -137,16 +131,23 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-const mapApiJob = (job: ApiJob): Job => ({
+const toList = (value: SupabaseJobRow['requirements'] | SupabaseJobRow['tech_stack']) => {
+  if (!value) return []
+  if (Array.isArray(value)) return value.map(String)
+  if (typeof value === 'string') return value.split(/[|,;]/).map(item => item.trim()).filter(Boolean)
+  return []
+}
+
+const mapSupabaseJob = (job: SupabaseJobRow): Job => ({
   id: job.id,
-  title: job.title,
-  company: job.company,
+  title: job.title || 'Untitled Role',
+  company: job.company || 'Unknown Company',
   location: job.location || 'Location not specified',
   type: (job.location || '').toLowerCase().includes('remote') ? 'Remote' : 'Full-time',
-  salary: job.salary_range || 'Not specified',
-  tags: (job.requirements || []).slice(0, 4),
-  posted: formatDate(job.posted_date || job.fetched_at),
-  logo: job.company.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase(),
+  salary: job.salary_range || job.salary || 'Not specified',
+  tags: [...toList(job.requirements), ...toList(job.tech_stack)].slice(0, 4),
+  posted: formatDate(job.posted_date || job.fetched_at || job.created_at),
+  logo: (job.company || 'UC').split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase(),
   description: job.description || '',
 })
 
@@ -157,7 +158,7 @@ export default function Jobs() {
   const [selected, setSelected] = useState<string[]>([])
   const [saved, setSaved] = useState<string[]>([])
   const [csvFileName, setCsvFileName] = useState('')
-  const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS)
+  const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const csvInputRef = useRef<HTMLInputElement | null>(null)
   const navigate = useNavigate()
@@ -165,15 +166,13 @@ export default function Jobs() {
   useEffect(() => {
     const loadJobs = async () => {
       try {
-        const apiJobs = await getJobs({ limit: 100 })
-        if (apiJobs.length) {
-          setJobs(apiJobs.map(mapApiJob))
-          setSelected([])
-          setSaved([])
-        }
+        const supabaseJobs = await getJobsFromSupabase(200)
+        setJobs(supabaseJobs.map(mapSupabaseJob))
+        setSelected([])
+        setSaved([])
       } catch (error) {
-        console.error('Failed to fetch jobs from backend:', error)
-        toast.error('Backend jobs unavailable, using local fallback.')
+        console.error('Failed to fetch jobs from Supabase:', error)
+        toast.error('Could not load jobs from Supabase.')
       } finally {
         setLoading(false)
       }
