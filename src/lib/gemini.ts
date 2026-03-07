@@ -3,11 +3,57 @@ import type { GithubRepoLLMInput, GeminiProjectSummary } from '@/types/project'
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
 const GEMINI_MODEL = (import.meta.env.VITE_GEMINI_MODEL as string | undefined) || 'gemini-2.0-flash'
 
+const TECH_CATALOG = [
+  'TypeScript', 'JavaScript', 'Python', 'Java', 'C++', 'C#', 'Go', 'Rust', 'PHP', 'Ruby',
+  'React', 'Next.js', 'Vue', 'Angular', 'Svelte', 'Node.js', 'Express', 'FastAPI', 'Django', 'Flask',
+  'Spring Boot', 'NestJS', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'SQLite', 'Supabase', 'Firebase',
+  'Docker', 'Kubernetes', 'AWS', 'GCP', 'Azure', 'Vercel', 'Netlify', 'GitHub Actions', 'Jest', 'Pytest',
+  'Tailwind CSS', 'HTML', 'CSS', 'GraphQL', 'REST API', 'Prisma', 'TensorFlow', 'PyTorch', 'LangChain',
+]
+
+const TECH_ALIASES: Record<string, string> = {
+  ts: 'TypeScript',
+  typescript: 'TypeScript',
+  js: 'JavaScript',
+  javascript: 'JavaScript',
+  node: 'Node.js',
+  'nodejs': 'Node.js',
+  reactjs: 'React',
+  nextjs: 'Next.js',
+  postgres: 'PostgreSQL',
+  postgresql: 'PostgreSQL',
+  mongo: 'MongoDB',
+  mongodb: 'MongoDB',
+  tailwind: 'Tailwind CSS',
+  graphql: 'GraphQL',
+  api: 'REST API',
+  'github actions': 'GitHub Actions',
+}
+
+function normalizeTechToken(value: string) {
+  const cleaned = value.trim().toLowerCase().replace(/[()]/g, '')
+  return TECH_ALIASES[cleaned] || TECH_CATALOG.find(t => t.toLowerCase() === cleaned) || value.trim()
+}
+
+function extractKnownTech(input: GithubRepoLLMInput) {
+  const text = `${input.name} ${input.githubDescription || ''} ${input.readmeRaw || ''} ${(input.topics || []).join(' ')} ${input.primaryLanguage || ''}`.toLowerCase()
+  const found = new Set<string>()
+
+  for (const tech of TECH_CATALOG) {
+    if (text.includes(tech.toLowerCase())) found.add(tech)
+  }
+  if (input.primaryLanguage) found.add(normalizeTechToken(input.primaryLanguage))
+
+  return [...found]
+}
+
+function cleanList(values: string[], limit: number) {
+  const dedup = [...new Set(values.map(v => normalizeTechToken(String(v))).map(v => v.trim()).filter(Boolean))]
+  return dedup.slice(0, limit)
+}
+
 function fallbackSummary(input: GithubRepoLLMInput): GeminiProjectSummary {
-  const combined = `${input.githubDescription || ''} ${input.readmeRaw || ''}`.trim()
-  const tokens = (combined.toLowerCase().match(/[a-z][a-z0-9+#.-]{2,}/g) || [])
-  const uniq = [...new Set(tokens)]
-  const tech = uniq.slice(0, 8)
+  const tech = extractKnownTech(input).slice(0, 8)
 
   return {
     title: input.name,
@@ -87,13 +133,20 @@ ${input.readmeRaw || ''}
   }
 
   const parsed = extractJsonObject(text)
+  const inferredTech = extractKnownTech(input)
+  const modelTech = Array.isArray(parsed.tech_stack) ? parsed.tech_stack.map(String) : []
+  const modelSkills = Array.isArray(parsed.skills_demonstrated) ? parsed.skills_demonstrated.map(String) : []
+
+  const finalTech = cleanList([...modelTech, ...inferredTech], 8)
+  const finalSkills = cleanList([...modelSkills, ...finalTech], 8)
+
   return {
     title: String(parsed.title || input.name),
     description: String(parsed.description || input.githubDescription || ''),
-    tech_stack: Array.isArray(parsed.tech_stack) ? parsed.tech_stack.map(String) : [],
+    tech_stack: finalTech,
     features: Array.isArray(parsed.features) ? parsed.features.map(String) : [],
     resume_bullets: Array.isArray(parsed.resume_bullets) ? parsed.resume_bullets.map(String).slice(0, 3) : [],
     category: String(parsed.category || 'other'),
-    skills_demonstrated: Array.isArray(parsed.skills_demonstrated) ? parsed.skills_demonstrated.map(String) : [],
+    skills_demonstrated: finalSkills,
   }
 }
