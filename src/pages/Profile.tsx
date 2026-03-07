@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ExternalLink, Github, Loader2, Sparkles } from 'lucide-react'
+import { summarizeRepoWithGemini } from '@/lib/gemini'
+import { upsertProjects } from '@/lib/supabase'
 
 type GithubRepo = {
   id: number
@@ -16,6 +18,7 @@ type GithubRepo = {
   forks_count: number
   updated_at: string
   owner: { login: string }
+  topics?: string[]
 }
 
 type GeneratedProfile = {
@@ -146,30 +149,88 @@ export default function Profile() {
       toast.error('Select at least 2 repositories.')
       return
     }
+    if (!user?.id) {
+      toast.error('Please sign in first.')
+      return
+    }
 
     const selectedRepos = repos.filter(repo => selectedRepoIds.includes(repo.id))
     if (!selectedRepos.length) return
 
     setGenerating(true)
     try {
-      const readmes = await Promise.all(
+      const repoDetails = await Promise.all(
         selectedRepos.map(async repo => {
           try {
-            const response = await fetch(`https://api.github.com/repos/${repo.owner.login}/${repo.name}/readme`, {
-              headers: { Accept: 'application/vnd.github.raw+json' },
-            })
+            const [readmeResponse, repoResponse] = await Promise.all([
+              fetch(`https://api.github.com/repos/${repo.owner.login}/${repo.name}/readme`, {
+                headers: { Accept: 'application/vnd.github.raw+json' },
+              }),
+              fetch(`https://api.github.com/repos/${repo.owner.login}/${repo.name}`, {
+                headers: { Accept: 'application/vnd.github+json' },
+              }),
+            ])
 
-            if (!response.ok) return ''
-            return await response.text()
+            const readme = readmeResponse.ok ? await readmeResponse.text() : ''
+            const repoJson = repoResponse.ok ? await repoResponse.json() : null
+
+            return {
+              repo,
+              readme,
+              topics: Array.isArray(repoJson?.topics) ? repoJson.topics.map(String) : [],
+            }
           } catch {
-            return ''
+            return {
+              repo,
+              readme: '',
+              topics: [] as string[],
+            }
           }
         }),
       )
 
+      const readmes = repoDetails.map(item => item.readme)
       const result = buildGeneratedProfile(selectedRepos, readmes)
       setGeneratedProfile(result)
-      toast.success('Profile generated from selected repositories.')
+
+      const llmSummaries = await Promise.all(
+        repoDetails.map(item =>
+          summarizeRepoWithGemini({
+            name: item.repo.name,
+            url: item.repo.html_url,
+            primaryLanguage: item.repo.language,
+            githubDescription: item.repo.description,
+            topics: item.topics,
+            readmeRaw: item.readme,
+          }),
+        ),
+      )
+
+      const now = new Date().toISOString()
+      await upsertProjects(
+        repoDetails.map((item, index) => ({
+          profile_id: user.id,
+          github_repo_name: item.repo.name,
+          github_repo_url: item.repo.html_url,
+          primary_language: item.repo.language,
+          github_topics: item.topics,
+          github_stars: item.repo.stargazers_count,
+          github_updated_at: item.repo.updated_at,
+          title: llmSummaries[index].title,
+          description: llmSummaries[index].description,
+          tech_stack: llmSummaries[index].tech_stack,
+          features: llmSummaries[index].features,
+          resume_bullets: llmSummaries[index].resume_bullets,
+          category: llmSummaries[index].category,
+          skills_demonstrated: llmSummaries[index].skills_demonstrated,
+          is_featured: false,
+          last_synced_at: now,
+          llm_processed_at: now,
+          readme_raw: item.readme || null,
+        })),
+      )
+
+      toast.success('Profile generated and projects synced to Supabase.')
     } catch (error) {
       console.error(error)
       toast.error('Failed to generate profile.')
