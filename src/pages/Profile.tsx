@@ -60,29 +60,6 @@ const normalizeSkill = (value: string) => {
 
 const formatDate = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 
-const parseGitHubError = async (response: Response) => {
-  let apiMessage = 'Unknown GitHub API error.'
-
-  try {
-    const json = await response.json()
-    if (json && typeof json.message === 'string') {
-      apiMessage = json.message
-    }
-  } catch {
-    // ignore JSON parse failures
-  }
-
-  const remaining = response.headers.get('x-ratelimit-remaining')
-  const reset = response.headers.get('x-ratelimit-reset')
-  const resetAt = reset ? new Date(Number(reset) * 1000).toLocaleTimeString() : null
-
-  if (response.status === 403 && remaining === '0') {
-    return `GitHub rate limit exceeded. Try again after ${resetAt || 'the limit resets'}.`
-  }
-
-  return `GitHub API ${response.status}: ${apiMessage}`
-}
-
 export default function Profile() {
   const { user, isLoaded, isSignedIn } = useClerkUser()
 
@@ -109,24 +86,14 @@ export default function Profile() {
 
       setLoadingRepos(true)
       try {
-        const response = await fetch(`https://api.github.com/users/${encodeURIComponent(githubUsername)}/repos?sort=updated&per_page=100`, {
-          headers: {
-            Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-          },
-        })
-
-        if (!response.ok) {
-          const message = await parseGitHubError(response)
-          throw new Error(message)
-        }
+        const response = await fetch(`https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=100`)
+        if (!response.ok) throw new Error('Failed to load repositories.')
 
         const data: GithubRepo[] = await response.json()
         setRepos(data)
       } catch (error) {
-        console.error('GitHub repo fetch failed:', error)
-        const message = error instanceof Error ? error.message : 'Could not load GitHub repositories.'
-        toast.error('Could not load GitHub repositories.', { description: message.slice(0, 220) })
+        console.error(error)
+        toast.error('Could not load GitHub repositories.')
       } finally {
         setLoadingRepos(false)
       }
