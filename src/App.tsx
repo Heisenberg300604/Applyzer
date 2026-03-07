@@ -17,12 +17,17 @@ import Notifications from '@/pages/Notifications'
 
 // 404 catch-all
 const NotFound = () => (
-  <div className="min-h-screen gradient-hero flex items-center justify-center text-center">
+  <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-center px-6">
     <div>
-      <p className="text-8xl mb-4">🤖</p>
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-2">404 — Page Not Found</h1>
-      <p className="text-gray-500 mb-6">Looks like this page got lost in the job market.</p>
-      <a href="/" className="gradient-violet text-white px-6 py-3 rounded-xl font-bold inline-block shadow-lg shadow-violet-200 hover:opacity-90 transition-opacity">
+      <p className="text-7xl font-extrabold text-white/10 mb-2 select-none">404</p>
+      <h1 className="text-4xl font-extrabold text-white mb-3">Page Not Found</h1>
+      <p className="text-gray-400 mb-8 max-w-sm mx-auto">
+        Looks like this page got lost in the job market.
+      </p>
+      <a
+        href="/"
+        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-orange-500/20 transition-colors duration-200"
+      >
         ← Back to Home
       </a>
     </div>

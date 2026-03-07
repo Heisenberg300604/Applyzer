@@ -50,45 +50,43 @@
   --radius: 0.75rem;
 
   /* === Applyzer Brand Palette === */
-  --brand-violet: #7C3AED;
-  --brand-violet-light: #8b5cf6;
-  --brand-violet-pale: #ede9fe;
-  --brand-lavender: #f0eeff;
-  --brand-amber: #f59e0b;
-  --brand-dark: #0f0a1e;
+  --brand-orange: #f97316;
+  --brand-orange-light: #fb923c;
+  --brand-orange-pale: #fff7ed;
+  --brand-dark: #0a0a0a;
 
-  /* === shadcn overridden to Applyzer violet === */
+  /* === shadcn overridden to Applyzer orange === */
   --background: oklch(1 0 0);
   --foreground: oklch(0.09 0.005 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.09 0.005 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.09 0.005 260);
-  --primary: oklch(0.491 0.27 292.7);
+  --primary: oklch(0.705 0.213 40.7);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.965 0.025 293);
-  --secondary-foreground: oklch(0.491 0.27 292.7);
-  --muted: oklch(0.97 0.005 293);
+  --secondary: oklch(0.97 0.012 40.7);
+  --secondary-foreground: oklch(0.705 0.213 40.7);
+  --muted: oklch(0.97 0.005 60);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.965 0.025 293);
-  --accent-foreground: oklch(0.491 0.27 292.7);
+  --accent: oklch(0.97 0.012 40.7);
+  --accent-foreground: oklch(0.705 0.213 40.7);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.008 293);
-  --input: oklch(0.928 0.008 293);
-  --ring: oklch(0.491 0.27 292.7);
-  --chart-1: oklch(0.646 0.222 41.116);
+  --border: oklch(0.928 0.006 40.7);
+  --input: oklch(0.928 0.006 40.7);
+  --ring: oklch(0.705 0.213 40.7);
+  --chart-1: oklch(0.705 0.213 40.7);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.491 0.27 292.7);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.005 293);
+  --sidebar: oklch(0.985 0.005 60);
   --sidebar-foreground: oklch(0.09 0.005 260);
-  --sidebar-primary: oklch(0.491 0.27 292.7);
+  --sidebar-primary: oklch(0.705 0.213 40.7);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.965 0.025 293);
-  --sidebar-accent-foreground: oklch(0.491 0.27 292.7);
-  --sidebar-border: oklch(0.928 0.008 293);
-  --sidebar-ring: oklch(0.491 0.27 292.7);
+  --sidebar-accent: oklch(0.97 0.012 40.7);
+  --sidebar-accent-foreground: oklch(0.705 0.213 40.7);
+  --sidebar-border: oklch(0.928 0.006 40.7);
+  --sidebar-ring: oklch(0.705 0.213 40.7);
 }
 
 .dark {
@@ -98,31 +96,31 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.13 0.01 260);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.63 0.23 292.7);
+  --primary: oklch(0.75 0.20 40.7);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.2 0.02 293);
+  --secondary: oklch(0.2 0.02 40.7);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.2 0.01 293);
+  --muted: oklch(0.2 0.01 60);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.2 0.02 293);
+  --accent: oklch(0.2 0.02 40.7);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.63 0.23 292.7);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --ring: oklch(0.75 0.20 40.7);
+  --chart-1: oklch(0.75 0.20 40.7);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.13 0.01 260);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.63 0.23 292.7);
+  --sidebar-primary: oklch(0.75 0.20 40.7);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.2 0.02 293);
+  --sidebar-accent: oklch(0.2 0.02 40.7);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.63 0.23 292.7);
+  --sidebar-ring: oklch(0.75 0.20 40.7);
 }
 
 @layer base {
@@ -148,69 +146,33 @@
 
 /* ========= Custom animation keyframes ========= */
 @keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-14px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
 }
 
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.25);
-  }
-
-  50% {
-    box-shadow: 0 0 0 20px rgba(124, 58, 237, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.25); }
+  50% { box-shadow: 0 0 0 20px rgba(249, 115, 22, 0); }
 }
 
 @keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-float {
@@ -238,23 +200,31 @@
 }
 
 /* ========= Gradient utilities ========= */
+/* Primary brand gradient — orange */
 .gradient-violet {
-  background: linear-gradient(135deg, #7C3AED 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
 }
 
+/* Dark gradient for dark sections */
+.gradient-dark {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+/* Light hero background */
 .gradient-hero {
-  background: linear-gradient(160deg, #f0eeff 0%, #faf9ff 55%, #ffffff 100%);
+  background: linear-gradient(160deg, #fff7ed 0%, #fafafa 55%, #ffffff 100%);
 }
 
+/* Text gradient — orange */
 .text-gradient-violet {
-  background: linear-gradient(135deg, #7C3AED, #c084fc);
+  background: linear-gradient(135deg, #f97316, #ea580c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.text-gradient-amber {
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+.text-gradient-orange {
+  background: linear-gradient(135deg, #f97316, #ea580c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -265,7 +235,7 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.12);
 }
 
 .hero-blob {
@@ -288,4 +258,84 @@ html {
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.375rem;
+}
+
+/* =========================================================
+   Clerk Auth UI — hover / focus / active overrides
+   These supplement the appearance.elements config in
+   src/lib/clerkAppearance.ts with interactive states that
+   cannot be expressed via CSS property objects alone.
+   ========================================================= */
+
+/* ── Social / OAuth buttons ─────────────────────────────── */
+.cl-socialButtonsBlockButton:hover {
+  border-color: #f97316 !important;
+  background-color: #fff7ed !important;
+  color: #ea580c !important;
+}
+.cl-socialButtonsBlockButton:active {
+  background-color: #ffedd5 !important;
+  transform: scale(0.99);
+}
+
+/* ── Primary CTA button ─────────────────────────────────── */
+.cl-formButtonPrimary:hover:not(:disabled) {
+  background-color: #ea580c !important;
+  box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.28),
+              0 2px 4px -2px rgba(249, 115, 22, 0.18) !important;
+}
+.cl-formButtonPrimary:active:not(:disabled) {
+  transform: scale(0.98);
+  background-color: #c2410c !important;
+}
+
+/* ── Text inputs — focus ring ───────────────────────────── */
+.cl-formFieldInput:focus {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12) !important;
+  outline: none !important;
+}
+/* Show-password icon */
+.cl-formFieldInputShowPasswordButton:hover {
+  color: #f97316 !important;
+}
+
+/* ── OTP code inputs ────────────────────────────────────── */
+.cl-otpCodeFieldInput:focus {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12) !important;
+  outline: none !important;
+}
+
+/* ── Footer / sign-up link ──────────────────────────────── */
+.cl-footerActionLink:hover {
+  color: #ea580c !important;
+  text-decoration: underline;
+}
+
+/* ── Forgot password & resend links ─────────────────────── */
+.cl-formFieldAction:hover,
+.cl-formResendCodeLink:hover {
+  color: #ea580c !important;
+  text-decoration: underline;
+}
+
+/* ── Identity preview edit button ───────────────────────── */
+.cl-identityPreviewEditButton:hover {
+  color: #ea580c !important;
+}
+
+/* ── Internal nav / back button ─────────────────────────── */
+.cl-navbarButton:hover {
+  color: #111827 !important;
+  background-color: #f9fafb !important;
+}
+
+/* ── Clerk card — ensure full width inside our panel ─────── */
+.cl-rootBox {
+  width: 100%;
+}
+.cl-card {
+  width: 100% !important;
+  max-width: 420px !important;
 }

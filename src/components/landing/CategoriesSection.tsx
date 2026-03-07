@@ -23,38 +23,45 @@ export default function CategoriesSection() {
     const inView = useInView(ref, { once: true, margin: '-80px' })
 
     return (
-        <section className="py-24 bg-[#f8f6ff]">
+        <section className="py-28 bg-white">
             <div className="max-w-7xl mx-auto px-6">
                 <motion.div
                     ref={ref}
                     initial={{ opacity: 0, y: 20 }}
                     animate={inView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.6 }}
-                    className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4"
+                    className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6"
                 >
                     <div>
-                        <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3">
+                        <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 border border-orange-100 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-5 uppercase tracking-wide">
+                            Browse by Category
+                        </div>
+                        <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-2">
                             Popular Job{' '}
-                            <span className="text-gradient-violet">Categories</span>
+                            <span className="text-orange-500">Categories</span>
                         </h2>
-                        <p className="text-gray-500 text-lg">Explore thousands of curated positions across every field.</p>
+                        <p className="text-gray-500 text-lg">
+                            Explore thousands of curated positions across every field.
+                        </p>
                     </div>
-                    <Button className="gradient-violet text-white border-0 rounded-xl shadow-lg shadow-violet-200 flex items-center gap-2 shrink-0">
+                    <Button className="bg-black hover:bg-orange-500 text-white border-0 rounded-xl transition-colors duration-200 flex items-center gap-2 shrink-0 font-semibold">
                         Browse All Jobs <ArrowUpRight className="w-4 h-4" />
                     </Button>
                 </motion.div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {categories.map((cat, i) => (
                         <motion.div
                             key={cat.label}
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.96 }}
                             animate={inView ? { opacity: 1, scale: 1 } : {}}
-                            transition={{ duration: 0.45, delay: i * 0.06 }}
-                            className="group bg-white rounded-2xl p-5 border border-violet-50 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-100/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                            transition={{ duration: 0.4, delay: i * 0.05 }}
+                            className="group bg-white rounded-xl p-5 border border-gray-100 hover:border-orange-200 hover:shadow-md hover:shadow-orange-50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                         >
-                            <div className="text-3xl mb-3">{cat.emoji}</div>
-                            <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-violet-700 transition-colors">{cat.label}</h3>
+                            <div className="text-2xl mb-3">{cat.emoji}</div>
+                            <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-orange-600 transition-colors">
+                                {cat.label}
+                            </h3>
                             <p className="text-xs text-gray-400 font-medium">{cat.count}</p>
                         </motion.div>
                     ))}

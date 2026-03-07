@@ -2,9 +2,9 @@ import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/landing/HeroSection'
 import FeaturesSection from '@/components/landing/FeaturesSection'
 import HowItWorks from '@/components/landing/HowItWorks'
+import TestimonialsSection from '@/components/landing/TestimonialsSection'
 import CategoriesSection from '@/components/landing/CategoriesSection'
-import GlobalReachSection from '@/components/landing/GlobalReachSection'
-import InsightsSection from '@/components/landing/InsightsSection'
+import CTASection from '@/components/landing/CTASection'
 import Footer from '@/components/landing/Footer'
 
 export default function Landing() {
@@ -15,9 +15,9 @@ export default function Landing() {
                 <HeroSection />
                 <FeaturesSection />
                 <HowItWorks />
+                <TestimonialsSection />
                 <CategoriesSection />
-                <GlobalReachSection />
-                <InsightsSection />
+                <CTASection />
             </main>
             <Footer />
         </div>

@@ -1,31 +1,31 @@
 import { useRef } from 'react'
 import { useInView, motion } from 'framer-motion'
-import { UserCircle, Search, Zap, ArrowRight } from 'lucide-react'
+import { UserCircle, Search, Zap, ArrowDown } from 'lucide-react'
 
 const steps = [
     {
         number: '01',
         icon: UserCircle,
-        color: 'from-violet-500 to-purple-600',
         title: 'Build Your Profile Once',
-        desc: 'Enter your skills, experience, education, and projects just once. Applyzer remembers everything about you.',
-        detail: 'Skills · Education · Experience · Projects · LinkedIn',
+        desc: 'Enter your skills, experience, education, and projects just once. Applyzer remembers everything about you and uses it for every application going forward.',
+        tags: ['Skills', 'Education', 'Experience', 'Projects'],
+        iconBg: 'bg-gray-900',
     },
     {
         number: '02',
         icon: Search,
-        color: 'from-blue-500 to-indigo-600',
         title: 'Select Jobs to Apply',
-        desc: 'Browse scraped jobs from LinkedIn, Indeed & niche boards. Select the ones you want and pick your tone.',
-        detail: 'Search · Filter · Select · Choose Email Tone',
+        desc: 'Browse auto-scraped jobs from LinkedIn, Indeed & niche boards. Filter by role, location, or salary. Pick the ones you want, choose your email tone.',
+        tags: ['Search', 'Filter', 'Select', 'Tone'],
+        iconBg: 'bg-orange-500',
     },
     {
         number: '03',
         icon: Zap,
-        color: 'from-amber-500 to-orange-500',
         title: 'AI Applies Automatically',
-        desc: 'Applyzer generates a tailored resume + cover letter + cold email per job, then fires them all from your Gmail.',
-        detail: 'Resume · Cover Letter · Cold DM · Gmail · Tracker',
+        desc: 'Applyzer generates a tailored resume, cover letter, and cold email per job — then sends everything directly from your Gmail account in one shot.',
+        tags: ['Resume', 'Cover Letter', 'Cold Email', 'Gmail'],
+        iconBg: 'bg-gray-900',
     },
 ]
 
@@ -34,8 +34,9 @@ export default function HowItWorks() {
     const inView = useInView(ref, { once: true, margin: '-80px' })
 
     return (
-        <section id="how-it-works" className="py-24 bg-white">
+        <section id="how-it-works" className="py-28 bg-[#fafafa]">
             <div className="max-w-7xl mx-auto px-6">
+                {/* Header */}
                 <motion.div
                     ref={ref}
                     initial={{ opacity: 0, y: 20 }}
@@ -43,71 +44,67 @@ export default function HowItWorks() {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-16"
                 >
-                    <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 rounded-full px-4 py-1.5 text-sm font-semibold mb-4">
+                    <div className="inline-flex items-center gap-2 bg-gray-900 text-white rounded-full px-3.5 py-1.5 text-xs font-semibold mb-5 uppercase tracking-widest">
                         Simple 3 Steps
                     </div>
-                    <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-                        How <span className="text-gradient-violet">Applyzer</span> Works
+                    <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
+                        How <span className="text-orange-500">Applyzer</span> Works
                     </h2>
-                    <p className="text-lg text-gray-500 max-w-lg mx-auto">
+                    <p className="text-lg text-gray-500 max-w-md mx-auto">
                         From profile to inbox in under 15 minutes — zero manual writing required.
                     </p>
                 </motion.div>
 
-                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-5">
-                    {/* Left image */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -24 }}
-                        animate={inView ? { opacity: 1, x: 0 } : {}}
-                        transition={{ duration: 0.6, delay: 0.05 }}
-                        className="w-full lg:w-[20%] flex justify-center lg:justify-start lg:mt-1"
-                    >
-                        <img
-                            src="/howapplyzerworks.png"
-                            alt="How Applyzer works"
-                            decoding="async"
-                            loading="lazy"
-                            className="w-full max-w-[200px] lg:max-w-[200px] "
-                        />
-                    </motion.div>
-
-                    {/* Right steps */}
-                    <div className="relative w-full lg:w-[60%] flex flex-col lg:flex-row items-stretch gap-4 lg:gap-0 lg:mt-1">
-                        {/* Connector line (desktop) */}
-                        <div className="hidden lg:block absolute top-16 left-[16.5%] right-[16.5%] h-0.5 bg-gradient-to-r from-violet-300 via-blue-300 to-amber-300 z-0" />
-
-                        {steps.map((step, i) => (
+                {/* Step cards */}
+                <div className="max-w-3xl mx-auto">
+                    {steps.map((step, i) => (
+                        <div key={step.number}>
                             <motion.div
-                                key={step.number}
-                                initial={{ opacity: 0, y: 32 }}
+                                initial={{ opacity: 0, y: 24 }}
                                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                                transition={{ duration: 0.6, delay: i * 0.18 }}
-                                className="flex-1 flex flex-col items-center text-center relative z-10 px-3 lg:px-5 py-1 lg:py-0"
+                                transition={{ duration: 0.5, delay: i * 0.14 }}
+                                className="flex items-start gap-6 bg-white rounded-2xl border border-gray-100 px-8 py-7 hover:border-orange-100 hover:shadow-sm transition-all duration-200"
                             >
-                                {/* Step circle icon */}
-                                <div className={`w-16 h-16 md:w-18 md:h-18 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg shadow-violet-200/50 mb-4`}>
-                                    <step.icon className="w-7 h-7 md:w-8 md:h-8 text-white" />
-                                </div>
-                                <span className="text-xs font-black text-gray-300 tracking-widest mb-2">{step.number}</span>
-                                <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-3">{step.title}</h3>
-                                <p className="text-gray-500 text-sm md:text-base leading-relaxed mb-4 max-w-md">{step.desc}</p>
-                                <div className="flex flex-wrap justify-center gap-1.5">
-                                    {step.detail.split(' · ').map(tag => (
-                                        <span key={tag} className="text-xs bg-violet-50 text-violet-600 font-medium rounded-full px-2.5 py-0.5 border border-violet-100">
-                                            {tag}
-                                        </span>
-                                    ))}
+                                {/* Icon + number */}
+                                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                                    <div className={`w-12 h-12 rounded-xl ${step.iconBg} flex items-center justify-center shadow-sm`}>
+                                        <step.icon className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-[10px] font-black text-gray-300 tracking-[0.25em]">
+                                        {step.number}
+                                    </span>
                                 </div>
 
-                                {/* Arrow between steps (mobile) */}
-                                {i < steps.length - 1 && (
-                                    <div className="lg:hidden mt-6 mb-2">
-                                        <ArrowRight className="w-5 h-5 text-gray-300 rotate-90" />
+                                {/* Content */}
+                                <div className="flex-1 pt-0.5">
+                                    <h3 className="text-lg font-extrabold text-gray-900 mb-2">{step.title}</h3>
+                                    <p className="text-gray-500 text-sm leading-relaxed mb-4">{step.desc}</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {step.tags.map(tag => (
+                                            <span
+                                                key={tag}
+                                                className="text-xs font-medium text-gray-500 bg-gray-50 border border-gray-100 rounded-full px-3 py-1"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
                             </motion.div>
-                        ))}
-                    </div>
+
+                            {/* Connector */}
+                            {i < steps.length - 1 && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={inView ? { opacity: 1 } : {}}
+                                    transition={{ duration: 0.4, delay: i * 0.14 + 0.3 }}
+                                    className="flex justify-center pl-6 py-2"
+                                >
+                                    <ArrowDown className="w-4 h-4 text-gray-300" />
+                                </motion.div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </section>
