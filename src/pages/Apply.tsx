@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '@/context/UserContext'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { Zap, CheckCircle, AlertCircle, Loader2, ArrowLeft, Sparkles, Mail, FileText, MessageSquare } from 'lucide-react'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { bulkApply } from '@/lib/api'
 
 type Status = 'idle' | 'generating' | 'done' | 'error'
@@ -70,10 +70,10 @@ export default function Apply() {
   if (!selectedIds.length) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <AlertCircle className="w-12 h-12 text-violet-300 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Jobs Selected</h2>
-        <p className="text-gray-500 mb-6">Go to Job Search and select the jobs you want to apply to.</p>
-        <Button onClick={() => navigate('/jobs')} className="gradient-violet text-white border-0 rounded-xl">Browse Jobs</Button>
+        <AlertCircle className="w-12 h-12 text-orange-500 mb-4" />
+        <h2 className="text-2xl font-black text-black mb-2 uppercase tracking-tight">No Jobs Selected</h2>
+        <p className="text-gray-500 mb-6 text-sm">Go to Job Search and select the jobs you want to apply to.</p>
+        <InteractiveHoverButton onClick={() => navigate('/jobs')} className="rounded-none">Browse Jobs</InteractiveHoverButton>
       </div>
     )
   }
@@ -85,16 +85,16 @@ export default function Apply() {
         <ArrowLeft className="w-4 h-4" /> Back to Job Search
       </button>
 
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Bulk Apply</h1>
-      <p className="text-gray-500 mb-8">Review your selections, configure settings, and let Applyzer apply for you.</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Bulk Apply</h1>
+      <p className="text-sm text-gray-500 mb-8">Review your selections, configure settings, and let Applyzer apply for you.</p>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Sparkles className="w-4 h-4 text-violet-500" /> Application Settings</h2>
+      <div className="bg-white border border-gray-200 p-6 mb-6 rounded-sm shadow-sm">
+        <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-sm"><Sparkles className="w-4 h-4 text-orange-500" /> Application Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1.5">Email Tone</label>
+            <label className="text-xs font-medium text-gray-500 block mb-1.5 uppercase tracking-wider">Email Tone</label>
             <Select value={tone} onValueChange={setTone}>
-              <SelectTrigger className="rounded-xl border-gray-200"><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="professional">Professional</SelectItem>
                 <SelectItem value="friendly">Friendly & Warm</SelectItem>
@@ -104,10 +104,10 @@ export default function Apply() {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1.5">What AI Will Generate</label>
+            <label className="text-xs font-medium text-gray-500 block mb-1.5 uppercase tracking-wider">What AI Will Generate</label>
             <div className="flex gap-2 flex-wrap">
               {[{ icon: FileText, label: 'Resume PDF' }, { icon: Mail, label: 'Cover Letter' }, { icon: MessageSquare, label: 'Cold DM' }].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 bg-violet-50 text-violet-700 rounded-lg px-3 py-1.5 text-xs font-semibold border border-violet-100">
+                <div key={label} className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 text-xs font-medium border border-orange-200 rounded-sm">
                   <Icon className="w-3.5 h-3.5" /> {label}
                 </div>
               ))}
@@ -117,46 +117,46 @@ export default function Apply() {
       </div>
 
       {overall === 'running' && (
-        <div className="bg-violet-50 rounded-2xl border border-violet-100 p-4 mb-6">
+        <div className="bg-orange-50 border border-orange-200 p-4 mb-6 rounded-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-violet-700">Applying... {progress}% done</span>
-            <Loader2 className="w-4 h-4 text-violet-500 animate-spin" />
+            <span className="text-xs font-medium text-orange-600">Applying... {progress}% done</span>
+            <Loader2 className="w-4 h-4 text-orange-500 animate-spin" />
           </div>
-          <Progress value={progress} className="h-2 bg-violet-100" />
+          <Progress value={progress} className="h-2 bg-orange-100" />
         </div>
       )}
 
       {overall === 'done' && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
-          <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
+        <div className="bg-gray-50 border border-gray-200 p-4 mb-6 flex items-center gap-3 rounded-sm">
+          <CheckCircle className="w-6 h-6 text-orange-500 shrink-0" />
           <div>
-            <p className="font-bold text-green-800">Applications queued.</p>
-            <p className="text-sm text-green-600">Check your Application Tracker for updates.</p>
+            <p className="font-semibold text-gray-900 text-sm">Applications queued.</p>
+            <p className="text-xs text-gray-500">Check your Application Tracker for updates.</p>
           </div>
-          <Button onClick={() => navigate('/dashboard')} variant="outline" className="ml-auto border-green-300 text-green-700 hover:bg-green-100 rounded-xl">View Tracker</Button>
+          <button onClick={() => navigate('/dashboard')} className="ml-auto border border-orange-300 text-orange-600 hover:bg-orange-500 hover:text-white hover:border-orange-500 px-4 py-1.5 text-xs font-medium transition-all rounded-sm">View Tracker</button>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-bold text-gray-900">Selected Jobs ({selectedIds.length})</h2>
-          <Badge className="bg-violet-100 text-violet-700 border-0">{tone} tone</Badge>
+      <div className="bg-white border border-gray-200 overflow-hidden mb-6 rounded-sm shadow-sm">
+        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <h2 className="font-semibold text-gray-900 text-sm">Selected Jobs ({selectedIds.length})</h2>
+          <Badge className="bg-orange-50 text-orange-600 border-orange-200 text-xs font-medium">{tone} tone</Badge>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-100">
           {applyStatus.map(({ id, status, step }) => {
             const job = selectedJobs.find(row => row.id === id)
             return (
               <div key={id} className="flex items-center gap-4 px-5 py-4">
-                <span className="text-xl flex-shrink-0">{job?.logo || 'JB'}</span>
+                <span className="font-bold text-xs bg-orange-500 text-white px-2 py-0.5 rounded-sm shrink-0">{job?.logo || 'JB'}</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 text-sm truncate">{job?.title || `Job ${id}`}</p>
                   <p className="text-xs text-gray-500">{job?.company || 'Unknown company'}</p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {status === 'idle' && <Badge variant="secondary" className="text-xs">Queued</Badge>}
-                  {status === 'generating' && <div className="flex items-center gap-1.5 text-violet-600 text-xs font-medium"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {step}</div>}
-                  {status === 'done' && <Badge className="bg-green-50 text-green-700 border-green-200 text-xs"><CheckCircle className="w-3 h-3 mr-1" />Sent</Badge>}
-                  {status === 'error' && <Badge className="bg-red-50 text-red-600 border-red-200 text-xs">Failed</Badge>}
+                <div className="flex items-center gap-2 shrink-0">
+                  {status === 'idle' && <Badge className="text-xs bg-gray-50 text-gray-500 border-gray-200 font-medium">Queued</Badge>}
+                  {status === 'generating' && <div className="flex items-center gap-1.5 text-orange-500 text-xs font-medium"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {step}</div>}
+                  {status === 'done' && <Badge className="bg-orange-50 text-orange-600 border-orange-200 text-xs font-medium"><CheckCircle className="w-3 h-3 mr-1" />Sent</Badge>}
+                  {status === 'error' && <Badge className="bg-gray-100 text-gray-600 border-gray-200 text-xs font-medium">Failed</Badge>}
                 </div>
               </div>
             )
@@ -164,11 +164,15 @@ export default function Apply() {
         </div>
       </div>
 
-      <Button onClick={handleApply} disabled={overall !== 'idle'} className="w-full gradient-violet text-white border-0 rounded-xl h-14 text-lg font-bold shadow-xl shadow-violet-200 hover:opacity-90 transition-all flex items-center gap-3 justify-center disabled:opacity-60">
+      <InteractiveHoverButton
+        onClick={handleApply}
+        disabled={overall !== 'idle'}
+        className="w-full gap-2 py-3 text-base font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+      >
         {overall === 'idle' && <><Zap className="w-5 h-5" /> Apply Now to {selectedIds.length} Jobs</>}
         {overall === 'running' && <><Loader2 className="w-5 h-5 animate-spin" /> Applying... {progress}%</>}
         {overall === 'done' && <><CheckCircle className="w-5 h-5" /> All Done!</>}
-      </Button>
+      </InteractiveHoverButton>
     </div>
   )
 }

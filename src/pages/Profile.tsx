@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useUser as useClerkUser } from '@clerk/react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ExternalLink, Github, Loader2, Sparkles } from 'lucide-react'
@@ -243,10 +243,10 @@ export default function Profile() {
 
   if (!isLoaded) {
     return (
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-8">
         <Toaster />
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex items-center gap-3 text-gray-600">
-          <Loader2 className="w-5 h-5 animate-spin" /> Loading profile...
+        <div className="bg-white border-2 border-black p-8 flex items-center gap-3 text-black font-bold">
+          <Loader2 className="w-5 h-5 animate-spin text-orange-500" /> Loading profile...
         </div>
       </div>
     )
@@ -254,55 +254,71 @@ export default function Profile() {
 
   if (!isSignedIn) {
     return (
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-8">
         <Toaster />
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Profile From GitHub</h1>
-          <p className="text-gray-500">Please sign in to view repositories and generate your profile.</p>
+        <div className="bg-white border-2 border-black p-8">
+          <h1 className="text-3xl font-black text-black mb-2 uppercase tracking-tight">Profile From GitHub</h1>
+          <p className="text-gray-500 text-sm">Please sign in to view repositories and generate your profile.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-8">
       <Toaster />
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Auto Profile Builder</h1>
-        <p className="text-gray-500">Select 2-3 GitHub repositories, then generate a profile summary from their README keywords.</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Auto Profile Builder</h1>
+          <p className="text-sm text-gray-500">Select 2–3 GitHub repositories to generate your profile summary.</p>
+        </div>
+        {githubUsername && (
+          <InteractiveHoverButton
+            onClick={handleGenerateProfile}
+            disabled={generating || selectedRepoIds.length < 2}
+            className="rounded-none shrink-0 gap-2 py-2 px-5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            Generate Profile
+          </InteractiveHoverButton>
+        )}
       </div>
 
       {!githubUsername && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-5 mb-6">
-          GitHub account not found on this Clerk user. Connect GitHub in Clerk to use this feature.
+        <div className="bg-gray-50 border border-gray-200 p-5 mb-6 rounded-sm">
+          <p className="font-semibold text-gray-800 text-sm">GitHub account not connected.</p>
+          <p className="text-xs text-gray-500 mt-1">Connect GitHub in your Clerk account settings to use this feature.</p>
         </div>
       )}
 
       {githubUsername && (
         <>
-          <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-            <div className="flex items-center gap-3 text-gray-700">
-              <Github className="w-5 h-5" />
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="border border-gray-200 p-4 flex items-center gap-3 rounded-sm shadow-sm bg-white">
+              <Github className="w-5 h-5 text-orange-500 shrink-0" />
               <div>
-                <p className="font-semibold">{githubUsername}</p>
-                <p className="text-sm text-gray-500">Public repositories: {repos.length}</p>
+                <p className="font-semibold text-gray-900 text-sm">{githubUsername}</p>
+                <p className="text-xs text-gray-400">GitHub account</p>
               </div>
             </div>
-
-            <Button
-              onClick={handleGenerateProfile}
-              disabled={generating || selectedRepoIds.length < 2}
-              className="gradient-violet text-white border-0 rounded-xl gap-2"
-            >
-              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              Generate Profile
-            </Button>
+            <div className="border border-gray-200 p-4 flex items-center rounded-sm shadow-sm bg-white">
+              <div>
+                <p className="font-black text-3xl text-gray-900">{repos.length}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Repositories</p>
+              </div>
+            </div>
+            <div className="border border-gray-200 p-4 flex items-center rounded-sm shadow-sm bg-white">
+              <div>
+                <p className="font-black text-3xl text-orange-500">{selectedRepoIds.length}/3</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Selected</p>
+              </div>
+            </div>
           </div>
 
           {loadingRepos ? (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex items-center gap-3 text-gray-600">
-              <Loader2 className="w-5 h-5 animate-spin" /> Loading repositories...
+            <div className="bg-white border border-gray-200 p-8 flex items-center gap-3 text-gray-600 rounded-sm shadow-sm">
+              <Loader2 className="w-5 h-5 animate-spin text-orange-500" /> Loading repositories...
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
@@ -315,31 +331,31 @@ export default function Profile() {
                     key={repo.id}
                     onClick={() => toggleRepo(repo.id)}
                     disabled={limitReached}
-                    className={`text-left bg-white rounded-2xl border p-4 shadow-sm transition-all ${selected ? 'border-violet-400 ring-2 ring-violet-200' : 'border-gray-100 hover:border-violet-200'} ${limitReached ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    className={`text-left bg-white border p-4 transition-all duration-150 rounded-sm shadow-sm ${selected ? 'border-orange-400 bg-orange-50 shadow-orange-100' : 'border-gray-200 hover:border-gray-400 hover:shadow-md'} ${limitReached ? 'opacity-40 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-bold text-gray-900 truncate">{repo.name}</h3>
+                      <h3 className="font-semibold text-gray-900 truncate text-sm">{repo.name}</h3>
                       <a
                         href={repo.html_url}
                         target="_blank"
                         rel="noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="text-gray-400 hover:text-gray-700"
+                        className="text-gray-300 hover:text-orange-500 transition-colors shrink-0"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
 
-                    <p className="text-sm text-gray-500 line-clamp-2 min-h-[2.5rem]">{repo.description || 'No description available.'}</p>
+                    <p className="text-sm text-gray-500 line-clamp-2 min-h-10">{repo.description || 'No description available.'}</p>
 
-                    <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                      <span>{repo.language || 'Unknown language'}</span>
+                    <div className="flex items-center justify-between mt-3 text-xs text-gray-400">
+                      <span className={`font-medium ${selected ? 'text-orange-500' : 'text-gray-600'}`}>{repo.language || 'Unknown'}</span>
                       <span>Updated {formatDate(repo.updated_at)}</span>
                     </div>
 
                     <div className="flex gap-2 mt-3">
-                      <Badge className="bg-gray-100 text-gray-700 border-0">Stars {repo.stargazers_count}</Badge>
-                      <Badge className="bg-gray-100 text-gray-700 border-0">Forks {repo.forks_count}</Badge>
+                      <Badge className="bg-gray-50 text-gray-600 border-gray-200 text-xs font-medium">★ {repo.stargazers_count}</Badge>
+                      <Badge className="bg-gray-50 text-gray-600 border-gray-200 text-xs font-medium">⑂ {repo.forks_count}</Badge>
                     </div>
                   </button>
                 )
@@ -348,28 +364,31 @@ export default function Profile() {
           )}
 
           {generatedProfile && (
-            <div className="bg-white rounded-2xl border border-violet-100 shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-1">Generated Profile</h2>
-              <p className="text-violet-700 font-medium mb-4">{generatedProfile.headline}</p>
-
-              <p className="text-gray-700 mb-5">{generatedProfile.summary}</p>
-
-              <div className="mb-5">
-                <p className="text-sm font-semibold text-gray-900 mb-2">Skills from selected repositories</p>
-                <div className="flex flex-wrap gap-2">
-                  {generatedProfile.skills.map(skill => (
-                    <Badge key={skill} className="bg-violet-50 text-violet-700 border-violet-100">{skill}</Badge>
-                  ))}
-                </div>
+            <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-gray-900">Generated Profile</h2>
+                <p className="text-orange-500 font-medium text-sm mt-1">{generatedProfile.headline}</p>
               </div>
+              <div className="p-6">
+                <p className="text-gray-600 mb-6 leading-relaxed text-sm">{generatedProfile.summary}</p>
 
-              <div>
-                <p className="text-sm font-semibold text-gray-900 mb-2">Project-based highlights</p>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {generatedProfile.highlights.map(item => (
-                    <li key={item} className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">{item}</li>
-                  ))}
-                </ul>
+                <div className="mb-6">
+                  <p className="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wider">Skills from selected repositories</p>
+                  <div className="flex flex-wrap gap-2">
+                    {generatedProfile.skills.map(skill => (
+                      <Badge key={skill} className="bg-orange-50 text-orange-600 border-orange-200 font-medium">{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wider">Project-based highlights</p>
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    {generatedProfile.highlights.map(item => (
+                      <li key={item} className="bg-gray-50 border border-gray-100 px-3 py-2 rounded-sm">{item}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           )}

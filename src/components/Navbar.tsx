@@ -23,6 +23,14 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', onScroll)
     }, [])
 
+    const handleAppClick = () => {
+        if (isSignedIn) {
+            navigate('/dashboard')
+        } else {
+            navigate('/sign-in')
+        }
+    }
+
     return (
         <header
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -31,60 +39,51 @@ export default function Navbar() {
                     : 'bg-transparent'
             }`}
         >
-            <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-3 group">
-                    <span className="text-xl font-black text-gray-900 tracking-tight">
+                    <span className="text-2xl font-black text-gray-900 tracking-tight">
                         APPLYZER
                     </span>
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
-                    <nav className="flex items-center gap-8">
+                <div className="hidden md:flex items-center gap-10">
+                    <nav className="flex items-center gap-10">
                         {navLinks.map(link => (
                             <a
                                 key={link.label}
                                 href={link.href}
-                                className="text-sm font-medium text-gray-900 hover:text-orange-500 transition-colors duration-150"
+                                className="text-base font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-150"
                             >
                                 {link.label}
                             </a>
                         ))}
                     </nav>
                     
-                    {isSignedIn ? (
-                        <InteractiveHoverButton
-                            onClick={() => navigate('/dashboard')}
-                            className="text-sm px-6 py-2"
-                        >
-                            Dashboard
-                        </InteractiveHoverButton>
-                    ) : (
-                        <InteractiveHoverButton
-                            onClick={() => navigate('/sign-in')}
-                            className="text-sm px-6 py-2"
-                        >
-                            Sign In
-                        </InteractiveHoverButton>
-                    )}
+                    <InteractiveHoverButton
+                        onClick={handleAppClick}
+                        className="text-base px-8 py-3 font-bold"
+                    >
+                        GO TO APP
+                    </InteractiveHoverButton>
                 </div>
 
                 {/* Mobile Menu */}
                 <Sheet>
                     <SheetTrigger asChild className="md:hidden">
                         <Button variant="ghost" size="icon" className="text-gray-900">
-                            <Menu className="w-5 h-5" />
+                            <Menu className="w-6 h-6" />
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="right" className="w-72 bg-white">
                         <div className="flex flex-col gap-6 mt-8">
                             <Link to="/" className="flex items-center gap-3">
                                 <div className="flex items-center gap-1.5">
-                                    <div className="w-2 h-2 rounded-full bg-black" />
-                                    <div className="w-2 h-2 rounded-full bg-black" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-black" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-black" />
                                 </div>
-                                <span className="text-xl font-black text-gray-900 tracking-tight">
+                                <span className="text-2xl font-black text-gray-900 tracking-tight">
                                     APPLYZER
                                 </span>
                             </Link>
@@ -93,28 +92,19 @@ export default function Navbar() {
                                     <a
                                         key={link.label}
                                         href={link.href}
-                                        className="text-sm font-medium text-gray-900 hover:text-orange-500 rounded-lg px-3 py-2 transition-colors duration-150"
+                                        className="text-base font-semibold text-gray-900 hover:text-orange-500 rounded-lg px-3 py-2 transition-colors duration-150"
                                     >
                                         {link.label}
                                     </a>
                                 ))}
                             </nav>
                             <div className="mt-4">
-                                {isSignedIn ? (
-                                    <InteractiveHoverButton
-                                        onClick={() => navigate('/dashboard')}
-                                        className="w-full text-sm"
-                                    >
-                                        Dashboard
-                                    </InteractiveHoverButton>
-                                ) : (
-                                    <InteractiveHoverButton
-                                        onClick={() => navigate('/sign-in')}
-                                        className="w-full text-sm"
-                                    >
-                                        Sign In
-                                    </InteractiveHoverButton>
-                                )}
+                                <InteractiveHoverButton
+                                    onClick={handleAppClick}
+                                    className="w-full text-base font-bold"
+                                >
+                                    GO TO APP
+                                </InteractiveHoverButton>
                             </div>
                         </div>
                     </SheetContent>

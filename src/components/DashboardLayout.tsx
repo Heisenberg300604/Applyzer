@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useUser } from '@/context/UserContext'
 import {
-    Bot, LayoutDashboard, User, Briefcase, Zap,
+    LayoutDashboard, User, Briefcase, Zap,
     FileText, Bell, LogOut, ChevronRight
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -28,37 +28,34 @@ export default function DashboardLayout() {
     const handleLogout = () => { logout(); navigate('/') }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-white flex">
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 left-0 z-40 shadow-sm">
+            <aside className="w-64 bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-40">
                 {/* Logo */}
-                <div className="flex items-center gap-2 px-5 h-16 border-b border-gray-100">
-                    <div className="w-8 h-8 rounded-lg gradient-violet flex items-center justify-center shadow">
-                        <Bot className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="font-extrabold text-gray-900">Apply<span className="text-gradient-violet">Bot</span></span>
+                <div className="flex items-center gap-3 px-5 h-16 border-b border-gray-200">
+                    <span className="text-xl font-black text-gray-900 tracking-tight">APPLYZER</span>
                 </div>
 
                 {/* Nav */}
-                <nav className="flex-1 py-6 px-3 space-y-1">
+                <nav className="flex-1 py-4 px-3 space-y-0.5">
                     {navItems.map(item => (
                         <NavLink
                             key={item.to}
                             to={item.to}
                             end={item.to === '/dashboard'}
                             className={({ isActive }) => cn(
-                                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                                'flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150 rounded-sm',
                                 isActive
-                                    ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
-                                    : 'text-gray-500 hover:bg-violet-50 hover:text-violet-700'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                             )}
                         >
                             {({ isActive }) => (
                                 <>
-                                    <item.icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-gray-400')} />
+                                    <item.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-white' : 'text-gray-400')} />
                                     <span className="flex-1">{item.label}</span>
                                     {item.badge && (
-                                        <Badge className={cn('text-xs px-1.5 py-0', isActive ? 'bg-white/30 text-white' : 'bg-violet-100 text-violet-700')}>
+                                        <Badge className={cn('text-xs px-1.5 py-0', isActive ? 'bg-white text-orange-500 border-white' : 'bg-orange-500 text-white border-orange-500')}>
                                             {item.badge}
                                         </Badge>
                                     )}
@@ -69,12 +66,12 @@ export default function DashboardLayout() {
                 </nav>
 
                 {/* User footer */}
-                <div className="px-4 py-4 border-t border-gray-100">
+                <div className="px-4 py-4 border-t border-gray-200">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="flex items-center gap-3 w-full hover:bg-gray-50 rounded-xl p-2 transition-colors group">
+                            <button className="flex items-center gap-3 w-full hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200 group">
                                 <Avatar className="w-8 h-8">
-                                    <AvatarFallback className="bg-violet-100 text-violet-700 text-xs font-bold">
+                                    <AvatarFallback className="bg-orange-500 text-white text-xs font-semibold">
                                         {userId ? `U${userId}` : 'AB'}
                                     </AvatarFallback>
                                 </Avatar>
@@ -82,11 +79,11 @@ export default function DashboardLayout() {
                                     <p className="text-sm font-semibold text-gray-900 truncate">User #{userId || '—'}</p>
                                     <p className="text-xs text-gray-400">Applyzer account</p>
                                 </div>
-                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                                <ChevronRight className="w-4 h-4 text-gray-400 transition-colors" />
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 gap-2">
+                        <DropdownMenuContent align="end" className="w-44 border border-gray-200 shadow-lg">
+                            <DropdownMenuItem onClick={handleLogout} className="text-gray-700 focus:bg-gray-100 focus:text-gray-900 gap-2 font-medium text-sm">
                                 <LogOut className="w-4 h-4" /> Sign Out
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -95,7 +92,7 @@ export default function DashboardLayout() {
             </aside>
 
             {/* Main content area */}
-            <main className="flex-1 ml-64 min-h-screen">
+            <main className="flex-1 ml-64 min-h-screen bg-white">
                 <Outlet />
             </main>
         </div>

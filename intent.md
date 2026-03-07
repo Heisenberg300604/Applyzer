@@ -168,9 +168,8 @@ Based on the provided reference image, the new design embodies:
 **After (Current)**:
 - Logo: Two black dots (••) + "APPLYZER" wordmark
 - Navigation links: Features, How It Works, Contact
-- Auth-aware CTA: "Sign In" or "Dashboard" (based on Clerk auth state)
+- Single CTA button: "GO TO APP" (handles both signed-in and signed-out states)
 - Interactive hover button (orange-to-black)
-- Uppercase, small text with wide tracking
 - Transparent background (becomes white on scroll)
 - Hamburger menu for mobile
 
@@ -180,7 +179,23 @@ Based on the provided reference image, the new design embodies:
 - CTA button uses interactive hover button component
 - Seamless integration with Clerk authentication
 
-**Rationale**: Modern navigation with clear brand identity and user-focused actions.
+**Visual Specifications**:
+- Navbar height: h-24 (96px) - more prominent
+- Logo text: text-2xl (24px), font-black (900 weight)
+- Logo dots: w-2.5 h-2.5 (10px) - slightly larger
+- Nav links: text-base (16px), font-semibold (600 weight)
+- Nav link spacing: gap-10 (40px between links)
+- Button text: "GO TO APP" (uppercase, aggressive)
+- Button size: text-base, px-8 py-3, font-bold
+- Mobile menu icon: w-6 h-6 (24px)
+
+**Button Logic**:
+- If user is signed in → Navigate to /dashboard
+- If user is not signed in → Navigate to /sign-in
+- Single button for both states (no conditional rendering)
+- Handled by `handleAppClick` function
+
+**Rationale**: More impressive, prominent navigation with bigger text and aggressive CTA that simplifies user journey.
 
 ---
 
@@ -398,6 +413,121 @@ h1, h2, h3, h4, h5, h6 {
 - Animation keyframes (for future use)
 - Clerk auth styles (for auth pages)
 - Utility classes
+
+---
+
+## 🎯 Navbar Brand UI Guidelines
+
+### Visual Hierarchy
+
+The navbar is designed to be prominent and impressive, establishing brand presence immediately:
+
+**Size Progression**:
+1. Logo (largest): 24px text + 10px dots
+2. CTA Button (most prominent): 16px bold text, large padding
+3. Nav Links (supporting): 16px semibold text
+4. Mobile Icon: 24px
+
+### Typography Specifications
+
+**Logo**:
+- Font size: text-2xl (24px)
+- Font weight: font-black (900)
+- Letter spacing: tracking-tight
+- Color: Gray-900 (#111827)
+- Dots: w-2.5 h-2.5 (10px), black (#0a0a0a)
+
+**Navigation Links**:
+- Font size: text-base (16px)
+- Font weight: font-semibold (600)
+- Color: Gray-900 (#111827)
+- Hover: Orange (#f97316)
+- Spacing: gap-10 (40px between links)
+
+**CTA Button**:
+- Text: "GO TO APP" (uppercase, aggressive)
+- Font size: text-base (16px)
+- Font weight: font-bold (700)
+- Padding: px-8 py-3 (32px horizontal, 12px vertical)
+- Component: InteractiveHoverButton
+- Colors: Orange (#f97316) → Black (#0a0a0a) on hover
+
+### Layout Specifications
+
+**Container**:
+- Height: h-24 (96px) - increased from h-20 for more presence
+- Max width: max-w-7xl (1280px)
+- Padding: px-6 (24px horizontal)
+- Position: Fixed top, full width
+- Z-index: z-50 (always on top)
+
+**Desktop Layout**:
+- Logo: Left aligned
+- Nav Links: Center-right, gap-10 spacing
+- CTA Button: Right aligned, gap-10 from nav links
+- Total spacing: Logo → Nav (auto) → Button (gap-10)
+
+**Mobile Layout**:
+- Logo: Left aligned (same as desktop)
+- Hamburger: Right aligned, w-6 h-6 icon
+- Sheet: Right side, w-72 width
+- Mobile nav links: text-base, font-semibold
+- Mobile button: Full width, same styling
+
+### Interaction States
+
+**Scroll Behavior**:
+- Default: Transparent background
+- Scrolled (>20px): White background (95% opacity), backdrop blur, bottom border
+
+**Nav Link States**:
+- Default: Gray-900
+- Hover: Orange (#f97316)
+- Transition: 150ms duration
+
+**Button States**:
+- Default: Orange background, white text
+- Hover: Black background, white text, scale 105%, shadow-xl
+- Active: Scale 95%
+- Shine animation on hover
+
+### Responsive Breakpoints
+
+**Desktop (md and up)**:
+- Show full navigation
+- Show CTA button
+- Hide hamburger menu
+
+**Mobile (below md)**:
+- Hide navigation links
+- Hide CTA button
+- Show hamburger menu
+- Sheet menu with all navigation
+
+### Brand Consistency Rules
+
+1. **Always use InteractiveHoverButton** for CTA
+2. **Never change button text** - must be "GO TO APP"
+3. **Maintain size hierarchy** - logo largest, button prominent, links supporting
+4. **Orange hover only** - nav links hover to orange, never other colors
+5. **Black dots** - logo dots always black (#0a0a0a)
+6. **Semibold nav links** - never regular or medium weight
+7. **Bold button text** - never semibold or regular
+
+### Accessibility
+
+- Minimum touch target: 44x44px (button exceeds this)
+- Color contrast: WCAG AA compliant
+- Keyboard navigation: Full support
+- Focus indicators: Visible on all interactive elements
+- Screen reader: Proper semantic HTML
+
+### Performance
+
+- Fixed positioning: Hardware accelerated
+- Backdrop blur: Only on scroll (performance optimization)
+- Transitions: CSS-based, 60fps
+- No JavaScript animations: Pure CSS transforms
 
 ---
 

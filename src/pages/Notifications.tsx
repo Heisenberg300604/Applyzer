@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { Bell, CheckCircle, Clock, RefreshCw, Mail, AlertTriangle, X, Zap } from 'lucide-react'
@@ -30,10 +29,10 @@ const INITIAL_NOTIFS: Notification[] = [
 ]
 
 const typeMeta: Record<NotifType, { icon: React.ElementType; color: string; badge: string }> = {
-    reply: { icon: Mail, color: 'bg-green-50 border-green-200', badge: 'bg-green-100 text-green-700 border-green-200' },
-    followup: { icon: Clock, color: 'bg-amber-50 border-amber-200', badge: 'bg-amber-100 text-amber-700 border-amber-200' },
-    info: { icon: Bell, color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-100 text-blue-700 border-blue-200' },
-    warning: { icon: AlertTriangle, color: 'bg-red-50 border-red-200', badge: 'bg-red-100 text-red-700 border-red-100' },
+    reply: { icon: Mail, color: 'border-orange-300 bg-orange-50', badge: 'bg-orange-50 text-orange-600 border-orange-200' },
+    followup: { icon: Clock, color: 'border-gray-200', badge: 'bg-gray-50 text-gray-600 border-gray-200' },
+    info: { icon: Bell, color: 'border-gray-200', badge: 'bg-gray-50 text-gray-600 border-gray-200' },
+    warning: { icon: AlertTriangle, color: 'border-amber-200 bg-amber-50', badge: 'bg-amber-50 text-amber-600 border-amber-200' },
 }
 
 const typeLabel: Record<NotifType, string> = {
@@ -64,18 +63,18 @@ export default function Notifications() {
         <div className="p-8 max-w-3xl mx-auto">
             <Toaster />
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-between mb-6 gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 mb-1 flex items-center gap-2">
-                        <Bell className="w-7 h-7 text-violet-600" /> Notifications
-                        {unread > 0 && <Badge className="bg-violet-600 text-white border-0 text-xs ml-1">{unread}</Badge>}
+                    <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+                        <Bell className="w-6 h-6 text-orange-500" /> Notifications
+                        {unread > 0 && <Badge className="bg-orange-500 text-white border-orange-500 text-xs font-medium ml-1">{unread}</Badge>}
                     </h1>
-                    <p className="text-gray-500">Reply alerts, follow-up reminders, and system updates.</p>
+                    <p className="text-sm text-gray-500">Reply alerts, follow-up reminders, and system updates.</p>
                 </div>
                 {unread > 0 && (
-                    <Button variant="outline" onClick={markAllRead} className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 gap-2 text-sm">
+                    <button onClick={markAllRead} className="flex items-center gap-2 border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-all shrink-0 rounded-sm shadow-sm">
                         <CheckCircle className="w-4 h-4" /> Mark all read
-                    </Button>
+                    </button>
                 )}
             </div>
 
@@ -85,13 +84,13 @@ export default function Notifications() {
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all
-              ${filter === f
-                                ? 'gradient-violet text-white shadow-md shadow-violet-200'
-                                : 'bg-white border border-gray-200 text-gray-600 hover:border-violet-200 hover:text-violet-600'
+                        className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all
+                            ${filter === f
+                                ? 'bg-orange-500 text-white border-orange-500'
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900'
                             }`}
                     >
-                        {f === 'all' ? `All (${notifs.length})` : `${typeLabel[f]}s`}
+                        {f === 'all' ? `All (${notifs.length})` : typeLabel[f]}
                     </button>
                 ))}
             </div>
@@ -104,51 +103,51 @@ export default function Notifications() {
                     return (
                         <div
                             key={notif.id}
-                            className={`bg-white rounded-2xl border p-5 shadow-sm transition-all ${notif.read ? 'border-gray-100 opacity-70' : `${meta.color} shadow-sm`}`}
+                            className={`bg-white border p-5 rounded-sm shadow-sm transition-all ${notif.read ? 'border-gray-100 opacity-70' : meta.color}`}
                         >
                             <div className="flex gap-4">
                                 {/* Icon */}
-                                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-current/10 flex items-center justify-center shadow-sm">
+                                <div className="shrink-0 w-10 h-10 border border-gray-200 bg-white rounded-sm flex items-center justify-center">
                                     <span className="text-xl">{notif.logo || '🤖'}</span>
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className={`font-bold text-sm truncate ${notif.read ? 'text-gray-600' : 'text-gray-900'}`}>{notif.title}</h3>
-                                        {!notif.read && <span className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />}
+                                        <h3 className={`font-semibold text-sm truncate ${notif.read ? 'text-gray-500' : 'text-gray-900'}`}>{notif.title}</h3>
+                                        {!notif.read && <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />}
                                     </div>
                                     <div className="flex gap-2 mb-2">
-                                        <Badge className={`text-xs border ${meta.badge}`}><Icon className="w-3 h-3 mr-1" />{typeLabel[notif.type]}</Badge>
+                                        <Badge className={`text-xs border font-medium ${meta.badge}`}><Icon className="w-3 h-3 mr-1" />{typeLabel[notif.type]}</Badge>
                                         <span className="text-xs text-gray-400">{notif.time}</span>
                                     </div>
                                     <p className="text-sm text-gray-500 leading-relaxed">{notif.body}</p>
 
                                     {/* Actions */}
-                                    <div className="flex gap-2 mt-3">
+                                    <div className="flex gap-2 mt-3 flex-wrap">
                                         {notif.type === 'reply' && (
-                                            <Button size="sm" className="gradient-violet text-white border-0 rounded-lg text-xs gap-1 h-7 px-3" onClick={() => navigate('/dashboard')}>
+                                            <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1.5 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 px-3 py-1.5 text-xs font-medium rounded-sm transition-all">
                                                 <Mail className="w-3 h-3" /> View in Tracker
-                                            </Button>
+                                            </button>
                                         )}
                                         {notif.type === 'followup' && (
-                                            <Button size="sm" className="gradient-violet text-white border-0 rounded-lg text-xs gap-1 h-7 px-3" onClick={() => handleFollowUp(notif.company)}>
+                                            <button onClick={() => handleFollowUp(notif.company)} className="flex items-center gap-1.5 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 px-3 py-1.5 text-xs font-medium rounded-sm transition-all">
                                                 <Zap className="w-3 h-3" /> Send Follow-up
-                                            </Button>
+                                            </button>
                                         )}
                                         {notif.type === 'warning' && (
-                                            <Button size="sm" variant="outline" className="rounded-lg text-xs gap-1 h-7 px-3 border-red-200 text-red-600" onClick={() => toast.info(`Retrying Cloudflare email...`)}>
+                                            <button onClick={() => toast.info(`Retrying Cloudflare email...`)} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900 px-3 py-1.5 text-xs font-medium rounded-sm transition-all">
                                                 <RefreshCw className="w-3 h-3" /> Retry
-                                            </Button>
+                                            </button>
                                         )}
                                         {!notif.read && (
-                                            <Button size="sm" variant="ghost" onClick={() => markRead(notif.id)} className="rounded-lg text-xs h-7 px-3 text-gray-400 hover:text-gray-700">
+                                            <button onClick={() => markRead(notif.id)} className="border border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700 px-3 py-1.5 text-xs font-medium rounded-sm transition-all">
                                                 Mark read
-                                            </Button>
+                                            </button>
                                         )}
-                                        <Button size="sm" variant="ghost" onClick={() => dismiss(notif.id)} className="rounded-lg text-xs h-7 px-3 text-gray-300 hover:text-red-400 ml-auto">
+                                        <button onClick={() => dismiss(notif.id)} className="flex items-center border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 px-2.5 py-1.5 text-xs rounded-sm transition-all ml-auto">
                                             <X className="w-3 h-3" />
-                                        </Button>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -158,10 +157,10 @@ export default function Notifications() {
             </div>
 
             {filtered.length === 0 && (
-                <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-                    <CheckCircle className="w-12 h-12 text-green-300 mx-auto mb-3" />
-                    <p className="font-bold text-gray-700 text-lg">All caught up!</p>
-                    <p className="text-gray-400 text-sm">No notifications in this category.</p>
+                <div className="text-center py-20 bg-white border border-gray-200 rounded-sm shadow-sm">
+                    <CheckCircle className="w-12 h-12 text-orange-500 mx-auto mb-3" />
+                    <p className="font-semibold text-gray-900 text-lg">All caught up!</p>
+                    <p className="text-gray-400 text-sm mt-1">No notifications in this category.</p>
                 </div>
             )}
         </div>

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useUser } from '@/context/UserContext'
 import { useUser as useClerkUser } from '@clerk/react'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { FileText, Mail, Download, Sparkles, Loader2, Eye, Copy } from 'lucide-react'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { getProfileMatchedJobs, type SupabaseJobRow } from '@/lib/supabase'
 import jsPDF from 'jspdf'
 
@@ -257,20 +257,20 @@ export default function Resume() {
     return (
         <div className="p-8 max-w-4xl mx-auto">
             <Toaster />
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Resume & Cover Letter</h1>
-            <p className="text-gray-500 mb-8">Preview AI-generated documents tailored to each job application.</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Resume & Cover Letter</h1>
+            <p className="text-sm text-gray-500 mb-8">AI-generated documents tailored to each job application.</p>
 
             {/* Config row */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+            <div className="bg-white border border-gray-200 p-5 mb-6 flex flex-wrap gap-4 items-end rounded-sm shadow-sm">
                 <div className="flex-1 min-w-48">
-                    <label className="text-sm font-semibold text-gray-700 block mb-1.5">Select Job Application</label>
+                    <label className="text-xs font-medium text-gray-500 block mb-1.5 uppercase tracking-wider">Select Job Application</label>
                     {loadingJobs ? (
                         <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
-                            <Loader2 className="w-4 h-4 animate-spin" /> Loading jobs…
+                            <Loader2 className="w-4 h-4 animate-spin text-orange-500" /> Loading jobs…
                         </div>
                     ) : (
                         <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-                            <SelectTrigger className="rounded-xl border-gray-200">
+                            <SelectTrigger>
                                 <SelectValue placeholder={jobs.length ? 'Select a job…' : 'No matched jobs found'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -283,69 +283,69 @@ export default function Resume() {
                         </Select>
                     )}
                 </div>
-                <Button
+                <InteractiveHoverButton
                     onClick={handleGenerate}
                     disabled={generating || !selectedJobId || loadingJobs}
-                    className="gradient-violet text-white border-0 rounded-xl gap-2 shadow-md shadow-violet-200 shrink-0"
+                    className="gap-2 py-2 px-5 text-sm shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {generating
                         ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
                         : <><Sparkles className="w-4 h-4" /> {result ? 'Regenerate' : 'Generate'}</>}
-                </Button>
+                </InteractiveHoverButton>
                 {result?.resumeBlob && (
-                    <Button onClick={handleDownloadResume} variant="outline" className="rounded-xl gap-2 border-violet-200 text-violet-700">
+                    <button onClick={handleDownloadResume} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 rounded-sm shadow-sm shrink-0">
                         <Download className="w-4 h-4" /> Download PDF
-                    </Button>
+                    </button>
                 )}
             </div>
 
             {!result ? (
-                <div className="text-center py-24 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="w-16 h-16 rounded-2xl gradient-violet mx-auto mb-4 flex items-center justify-center">
+                <div className="text-center py-24 bg-white border border-gray-200 rounded-sm shadow-sm">
+                    <div className="w-16 h-16 bg-orange-500 rounded-sm mx-auto mb-4 flex items-center justify-center">
                         <FileText className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No Documents Generated Yet</h3>
                     <p className="text-gray-500 text-sm max-w-sm mx-auto mb-6">Select a job above and click Generate to create a tailored resume, cover letter, and cold DM.</p>
-                    <Button onClick={handleGenerate} disabled={generating || !selectedJobId} className="gradient-violet text-white border-0 rounded-xl gap-2">
+                    <InteractiveHoverButton onClick={handleGenerate} disabled={generating || !selectedJobId} className="gap-2 py-2 px-6 disabled:opacity-50">
                         {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate Now</>}
-                    </Button>
+                    </InteractiveHoverButton>
                 </div>
             ) : (
                 <Tabs defaultValue="resume" className="space-y-4">
-                    <TabsList className="bg-violet-50 p-1 rounded-xl">
-                        <TabsTrigger value="resume" className="rounded-lg gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700">
+                    <TabsList className="bg-white border border-gray-200 p-0 gap-0 h-auto rounded-sm shadow-sm">
+                        <TabsTrigger value="resume" className="gap-1.5 px-6 py-3 font-medium text-sm data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-gray-600">
                             <FileText className="w-3.5 h-3.5" /> Resume
                         </TabsTrigger>
-                        <TabsTrigger value="cover-letter" className="rounded-lg gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700">
+                        <TabsTrigger value="cover-letter" className="gap-1.5 px-6 py-3 font-medium text-sm border-l border-gray-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-gray-600">
                             <Mail className="w-3.5 h-3.5" /> Cover Letter
                         </TabsTrigger>
-                        <TabsTrigger value="cold-dm" className="rounded-lg gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-700">
+                        <TabsTrigger value="cold-dm" className="gap-1.5 px-6 py-3 font-medium text-sm border-l border-gray-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-gray-600">
                             <Eye className="w-3.5 h-3.5" /> Cold DM
                         </TabsTrigger>
                     </TabsList>
 
                     {/* Resume Tab */}
                     <TabsContent value="resume">
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div className="bg-gradient-to-r from-violet-600 to-purple-700 px-8 py-6 text-white">
+                        <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
+                            <div className="bg-orange-500 px-8 py-6 text-white">
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <h2 className="text-2xl font-extrabold mb-0.5">{userName}</h2>
-                                        <p className="text-violet-200 text-sm">{userEmail}</p>
+                                        <h2 className="text-2xl font-bold mb-0.5">{userName}</h2>
+                                        <p className="text-orange-100 text-sm">{userEmail}</p>
                                     </div>
-                                    <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">Tailored for {result.jobCompany}</Badge>
+                                    <Badge className="bg-white text-orange-600 border-white font-medium text-xs">Tailored for {result.jobCompany}</Badge>
                                 </div>
                             </div>
                             <div className="p-8">
-                                <div className="bg-violet-50 border border-violet-100 rounded-xl p-6 text-center">
-                                    <FileText className="w-12 h-12 text-violet-500 mx-auto mb-3" />
-                                    <h3 className="font-bold text-gray-900 mb-1">Resume Generated Successfully</h3>
-                                    <p className="text-sm text-gray-600 mb-4">
-                                        Your tailored resume for <strong>{result.jobTitle}</strong> at <strong>{result.jobCompany}</strong> is ready.
+                                <div className="bg-gray-50 border border-gray-200 p-6 text-center rounded-sm">
+                                    <FileText className="w-12 h-12 text-orange-500 mx-auto mb-3" />
+                                    <h3 className="font-semibold text-gray-900 mb-1">Resume Generated Successfully</h3>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        Tailored for <strong>{result.jobTitle}</strong> at <strong>{result.jobCompany}</strong>
                                     </p>
-                                    <Button onClick={handleDownloadResume} className="gradient-violet text-white border-0 rounded-xl gap-2">
+                                    <InteractiveHoverButton onClick={handleDownloadResume} className="gap-2 py-2 px-6 text-sm">
                                         <Download className="w-4 h-4" /> Download PDF
-                                    </Button>
+                                    </InteractiveHoverButton>
                                 </div>
                             </div>
                         </div>
@@ -353,24 +353,24 @@ export default function Resume() {
 
                     {/* Cover Letter Tab */}
                     <TabsContent value="cover-letter">
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                        <div className="bg-white border border-gray-200 p-8 rounded-sm shadow-sm">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-bold text-gray-900">Cover Letter — {result.jobCompany} · {result.jobTitle}</h2>
-                                <Badge className="bg-green-50 text-green-700 border-green-200">AI Generated</Badge>
+                                <h2 className="font-semibold text-gray-900">Cover Letter — {result.jobCompany}</h2>
+                                <Badge className="bg-orange-50 text-orange-600 border-orange-200 font-medium text-xs">AI Generated</Badge>
                             </div>
                             {result.coverLetterContent ? (
                                 <>
-                                    <div className="bg-gray-50 rounded-xl border border-gray-100 p-6 font-mono text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
+                                    <div className="bg-gray-50 border border-gray-200 p-6 font-mono text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4 rounded-sm">
                                         {result.coverLetterContent}
                                     </div>
-                                    <Button variant="outline" onClick={() => handleCopy(result.coverLetterContent)} className="rounded-xl border-violet-200 text-violet-700 gap-2">
+                                    <button onClick={() => handleCopy(result.coverLetterContent)} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 rounded-sm shadow-sm">
                                         <Copy className="w-4 h-4" /> Copy Letter
-                                    </Button>
+                                    </button>
                                 </>
                             ) : (
-                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-amber-900">
-                                    <p className="font-semibold mb-1">Cover letter not available</p>
-                                    <p className="text-sm">The selected job may not exist in the backend database. Make sure jobs are fetched/synced via the backend, then try again.</p>
+                                <div className="bg-gray-50 border border-gray-200 p-5 rounded-sm">
+                                    <p className="font-semibold text-gray-700 text-sm mb-1">Cover letter not available</p>
+                                    <p className="text-sm text-gray-500">The selected job may not exist in the backend database. Make sure jobs are fetched/synced via the backend, then try again.</p>
                                 </div>
                             )}
                         </div>
@@ -378,17 +378,17 @@ export default function Resume() {
 
                     {/* Cold DM Tab */}
                     <TabsContent value="cold-dm">
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                        <div className="bg-white border border-gray-200 p-8 rounded-sm shadow-sm">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-bold text-gray-900">LinkedIn Cold DM — {result.jobCompany} Recruiter</h2>
-                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">Personalized</Badge>
+                                <h2 className="font-semibold text-gray-900">LinkedIn Cold DM — {result.jobCompany}</h2>
+                                <Badge className="bg-gray-100 text-gray-600 border-gray-200 font-medium text-xs">Personalized</Badge>
                             </div>
-                            <div className="bg-gray-50 rounded-xl border border-gray-100 p-6 text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
+                            <div className="bg-gray-50 border border-gray-200 p-6 text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4 rounded-sm">
                                 {coldDmText}
                             </div>
-                            <Button variant="outline" onClick={() => handleCopy(coldDmText)} className="rounded-xl border-violet-200 text-violet-700 gap-2">
+                            <button onClick={() => handleCopy(coldDmText)} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 rounded-sm shadow-sm">
                                 <Copy className="w-4 h-4" /> Copy DM
-                            </Button>
+                            </button>
                         </div>
                     </TabsContent>
                 </Tabs>

@@ -6,13 +6,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,8 +71,8 @@
   --accent: oklch(0.97 0.012 40.7);
   --accent-foreground: oklch(0.705 0.213 40.7);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 40.7);
-  --input: oklch(0.928 0.006 40.7);
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.88 0 0);
   --ring: oklch(0.705 0.213 40.7);
   --chart-1: oklch(0.705 0.213 40.7);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -140,7 +140,8 @@
   h5,
   h6 {
     font-family: 'Inter', sans-serif;
-    font-weight: 800;
+    font-weight: 900;
+    letter-spacing: -0.02em;
   }
 }
 

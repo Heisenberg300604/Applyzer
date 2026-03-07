@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
@@ -37,10 +37,10 @@ type Job = {
 }
 
 const typeColors: Record<string, string> = {
-  'Full-time': 'bg-blue-50 text-blue-700 border-blue-100',
-  Remote: 'bg-green-50 text-green-700 border-green-100',
-  Hybrid: 'bg-amber-50 text-amber-700 border-amber-100',
-  'On-site': 'bg-purple-50 text-purple-700 border-purple-100',
+  'Full-time': 'bg-gray-50 text-gray-600 border-gray-200',
+  Remote: 'bg-orange-50 text-orange-600 border-orange-200',
+  Hybrid: 'bg-orange-50 text-orange-500 border-orange-200',
+  'On-site': 'bg-gray-100 text-gray-600 border-gray-200',
 }
 
 const normalizeHeader = (header: string) => header.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -230,34 +230,34 @@ export default function Jobs() {
   return (
     <div className="p-8">
       <Toaster />
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Find Jobs</h1>
-          <p className="text-gray-500">Browse and select jobs for bulk apply. <span className="font-semibold text-violet-600">{filtered.length} results</span></p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Find Jobs</h1>
+          <p className="text-sm text-gray-500">Browse and select jobs for bulk apply. <span className="text-orange-500 font-medium">{filtered.length} results</span></p>
         </div>
         <div className="flex items-center gap-3">
           <input ref={csvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleCsvUpload} />
-          <Button variant="outline" className="rounded-xl border-gray-200 gap-2" onClick={() => csvInputRef.current?.click()}>
+          <button onClick={() => csvInputRef.current?.click()} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 rounded-sm shadow-sm">
             <Upload className="w-4 h-4" /> Upload CSV
-          </Button>
+          </button>
           {selected.length > 0 && (
-            <Button onClick={handleBulkApply} className="gradient-violet text-white border-0 rounded-xl shadow-lg shadow-violet-200 gap-2 animate-pulse-glow">
+            <InteractiveHoverButton onClick={handleBulkApply} className="rounded-none gap-2 py-2 px-5 text-sm">
               <Zap className="w-4 h-4" /> Apply to {selected.length} Job{selected.length > 1 ? 's' : ''}
-            </Button>
+            </InteractiveHoverButton>
           )}
         </div>
       </div>
 
-      {loading && <p className="text-sm text-gray-500 mb-4">Loading jobs from backend...</p>}
-      {csvFileName && <p className="text-sm text-gray-500 -mt-3 mb-5">Selected CSV: <span className="font-medium text-gray-700">{csvFileName}</span></p>}
+      {loading && <p className="text-xs text-gray-500 mb-4 uppercase tracking-widest font-bold">Loading jobs from backend...</p>}
+      {csvFileName && <p className="text-xs text-gray-500 -mt-5 mb-5 uppercase tracking-wider font-bold">CSV: <span className="text-black">{csvFileName}</span></p>}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-center">
+      <div className="bg-white border border-gray-200 p-4 mb-6 flex flex-wrap gap-3 items-center rounded-sm shadow-sm">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input className="pl-9 rounded-xl border-gray-200" placeholder="Search title, company, skill..." value={query} onChange={e => setQuery(e.target.value)} />
+          <Input className="pl-9" placeholder="Search title, company, skill..." value={query} onChange={e => setQuery(e.target.value)} />
         </div>
         <Select value={locationF} onValueChange={setLocationF}>
-          <SelectTrigger className="w-44 rounded-xl border-gray-200"><MapPin className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Location" /></SelectTrigger>
+          <SelectTrigger className="w-44"><MapPin className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Location" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
             <SelectItem value="remote">Remote</SelectItem>
@@ -267,7 +267,7 @@ export default function Jobs() {
           </SelectContent>
         </Select>
         <Select value={typeF} onValueChange={setTypeF}>
-          <SelectTrigger className="w-40 rounded-xl border-gray-200"><SlidersHorizontal className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectTrigger className="w-40"><SlidersHorizontal className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Type" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="Full-time">Full-time</SelectItem>
@@ -276,7 +276,7 @@ export default function Jobs() {
             <SelectItem value="On-site">On-site</SelectItem>
           </SelectContent>
         </Select>
-        <button onClick={selectAll} className="text-sm text-violet-600 font-semibold hover:underline whitespace-nowrap">{selected.length === filtered.length ? 'Deselect All' : 'Select All'}</button>
+        <button onClick={selectAll} className="text-sm text-gray-500 font-medium hover:text-orange-500 transition-colors whitespace-nowrap">{selected.length === filtered.length ? 'Deselect All' : 'Select All'}</button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -284,34 +284,34 @@ export default function Jobs() {
           const isSelected = selected.includes(job.id)
           const isSaved = saved.includes(job.id)
           return (
-            <div key={job.id} className={`bg-white rounded-2xl border shadow-sm p-5 transition-all duration-200 cursor-pointer ${isSelected ? 'border-violet-400 shadow-violet-100 bg-violet-50/30 ring-2 ring-violet-200' : 'border-gray-100 hover:border-violet-200 hover:shadow-md hover:-translate-y-0.5'}`} onClick={() => toggleSelect(job.id)}>
+            <div key={job.id} className={`bg-white border p-5 transition-all duration-200 cursor-pointer rounded-sm shadow-sm ${isSelected ? 'border-orange-400 bg-orange-50 shadow-orange-100' : 'border-gray-200 hover:border-gray-400 hover:shadow-md'}`} onClick={() => toggleSelect(job.id)}>
               <div className="flex items-start gap-4">
-                <div className="mt-0.5 flex-shrink-0" onClick={e => { e.stopPropagation(); toggleSelect(job.id) }}>
-                  {isSelected ? <CheckSquare className="w-5 h-5 text-violet-600" /> : <Square className="w-5 h-5 text-gray-300" />}
+                <div className="mt-0.5 shrink-0" onClick={e => { e.stopPropagation(); toggleSelect(job.id) }}>
+                  {isSelected ? <CheckSquare className="w-5 h-5 text-orange-500" /> : <Square className="w-5 h-5 text-gray-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl flex-shrink-0">{job.logo}</span>
+                      <span className="font-bold text-sm bg-orange-500 text-white px-2 py-0.5 rounded-sm shrink-0">{job.logo}</span>
                       <div>
-                        <h3 className="font-bold text-gray-900 truncate">{job.title}</h3>
+                        <h3 className="font-semibold text-gray-900 truncate">{job.title}</h3>
                         <div className="flex items-center gap-1.5 text-sm text-gray-500"><Building2 className="w-3.5 h-3.5" /><span>{job.company}</span></div>
                       </div>
                     </div>
-                    <div className="flex gap-1.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => toggleSave(job.id)} className={`p-1.5 rounded-lg transition-colors ${isSaved ? 'text-violet-600 bg-violet-50' : 'text-gray-300 hover:text-violet-400'}`}><Bookmark className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} /></button>
-                      <button className="p-1.5 rounded-lg text-gray-300 hover:text-gray-500 transition-colors"><ExternalLink className="w-4 h-4" /></button>
+                    <div className="flex gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => toggleSave(job.id)} className={`p-1.5 border rounded-sm transition-colors ${isSaved ? 'text-white bg-orange-500 border-orange-500' : 'text-gray-400 border-gray-200 hover:border-orange-400 hover:text-orange-500'}`}><Bookmark className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} /></button>
+                      <button className="p-1.5 border border-gray-200 rounded-sm text-gray-400 hover:border-gray-400 hover:text-gray-700 transition-colors"><ExternalLink className="w-4 h-4" /></button>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
+                  <div className="flex flex-wrap gap-2 text-xs text-gray-400 mb-3">
                     <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{job.posted}</span>
-                    <span className="font-semibold text-green-600">{job.salary}</span>
+                    <span className="font-medium text-gray-600">{job.salary}</span>
                   </div>
                   {job.description && <p className="text-xs text-gray-500 mb-3 line-clamp-2">{job.description}</p>}
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    <Badge className={`text-xs font-semibold border ${typeColors[job.type] || ''}`}>{job.type}</Badge>
-                    {job.tags.map((tag, idx) => <Badge key={`${tag}-${idx}`} variant="secondary" className="text-xs bg-gray-100 text-gray-600 border-0">{tag}</Badge>)}
+                    <Badge className={`text-xs font-medium border ${typeColors[job.type] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{job.type}</Badge>
+                    {job.tags.map((tag, idx) => <Badge key={`${tag}-${idx}`} className="text-xs bg-gray-50 text-gray-600 border-gray-200 font-medium">{tag}</Badge>)}
                   </div>
                 </div>
               </div>
@@ -321,10 +321,10 @@ export default function Jobs() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-20 text-gray-400">
-          <Search className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <p className="font-semibold text-lg">No jobs match your filters</p>
-          <p className="text-sm">Try adjusting your search or filters</p>
+        <div className="text-center py-20 border border-gray-200 bg-white rounded-sm shadow-sm">
+          <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+          <p className="font-semibold text-gray-500">No jobs match your filters</p>
+          <p className="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
         </div>
       )}
     </div>
