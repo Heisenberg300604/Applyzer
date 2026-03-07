@@ -1,11 +1,9 @@
 import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/landing/HeroSection'
+import DashboardScrollSection from '@/components/landing/DashboardScrollSection'
+import HowItWorksSection from '@/components/landing/HowItWorksSection'
 import FeaturesSection from '@/components/landing/FeaturesSection'
-import HowItWorks from '@/components/landing/HowItWorks'
-import TestimonialsSection from '@/components/landing/TestimonialsSection'
-import CategoriesSection from '@/components/landing/CategoriesSection'
 import CTASection from '@/components/landing/CTASection'
-import Footer from '@/components/landing/Footer'
 
 export default function Landing() {
     return (
@@ -13,13 +11,11 @@ export default function Landing() {
             <Navbar />
             <main>
                 <HeroSection />
+                <DashboardScrollSection />
+                <HowItWorksSection />
                 <FeaturesSection />
-                <HowItWorks />
-                <TestimonialsSection />
-                <CategoriesSection />
                 <CTASection />
             </main>
-            <Footer />
         </div>
     )
 }

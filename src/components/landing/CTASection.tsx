@@ -1,81 +1,44 @@
-import { useRef } from 'react'
-import { useInView, motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { ArrowUpRight, CheckCircle } from 'lucide-react'
-
-const perks = [
-    'No credit card required',
-    'Free forever plan available',
-    'Setup in under 2 minutes',
-]
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { Upload } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function CTASection() {
-    const ref = useRef(null)
-    const inView = useInView(ref, { once: true, margin: '-80px' })
+  return (
+    <section className="py-32 bg-white">
+      <div className="container mx-auto px-6 max-w-4xl">
+        {/* Main CTA Card - Border, no background */}
+        <div className="border-2 border-black p-12 md:p-20">
+          {/* Heading */}
+          <h2 className="text-4xl md:text-6xl font-black text-gray-900 text-center mb-6 leading-tight">
+            Ready to Beat the ATS?
+          </h2>
 
-    return (
-        <section className="py-28 bg-white">
-            <div className="max-w-5xl mx-auto px-6">
-                <motion.div
-                    ref={ref}
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.65 }}
-                    className="relative overflow-hidden bg-[#0a0a0a] rounded-3xl px-8 py-16 sm:px-16 sm:py-20 text-center"
-                >
-                    {/* Orange glow */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-orange-500/12 rounded-full filter blur-[80px] pointer-events-none" />
+          {/* Subheading */}
+          <p className="text-xl md:text-2xl text-gray-600 text-center mb-4 max-w-3xl mx-auto">
+            Submit your resume and get your <span className="text-orange-500 font-bold">ATS Match Score</span> instantly
+          </p>
 
-                    {/* Subtle dot grid */}
-                    <div
-                        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                        style={{
-                            backgroundImage:
-                                'radial-gradient(circle, #ffffff 1px, transparent 1px)',
-                            backgroundSize: '28px 28px',
-                        }}
-                    />
+          {/* Supporting text */}
+          <p className="text-base text-gray-500 text-center mb-12 max-w-2xl mx-auto">
+            See exactly how recruiters see your profile. Get actionable insights to optimize your resume for any job description.
+          </p>
 
-                    <div className="relative z-10">
-                        <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-6 uppercase tracking-wide">
-                            Get Started Today
-                        </div>
+          {/* Big CTA Button */}
+          <div className="flex justify-center">
+            <Link to="/sign-up" className="w-full max-w-md">
+              <InteractiveHoverButton className="w-full text-lg md:text-xl py-6 md:py-8 px-12 uppercase tracking-wider font-bold">
+                <Upload className="w-6 h-6 mr-3" />
+                Check My ATS Score
+              </InteractiveHoverButton>
+            </Link>
+          </div>
+        </div>
 
-                        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-5 leading-tight">
-                            Ready to Land Your
-                            <br />
-                            <span className="text-orange-500">Dream Job?</span>
-                        </h2>
-
-                        <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-                            Join 2,400+ job seekers who've automated their entire application pipeline
-                            with Applyzer. Set up once, apply everywhere.
-                        </p>
-
-                        {/* CTA button */}
-                        <Link to="/sign-up">
-                            <Button
-                                size="lg"
-                                className="bg-orange-500 hover:bg-orange-600 text-white border-0 shadow-xl shadow-orange-500/20 font-bold rounded-xl px-10 text-base flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
-                            >
-                                Start Free Today
-                                <ArrowUpRight className="w-5 h-5" />
-                            </Button>
-                        </Link>
-
-                        {/* Perks */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-8">
-                            {perks.map(perk => (
-                                <div key={perk} className="flex items-center gap-2 text-gray-400 text-sm">
-                                    <CheckCircle className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                                    {perk}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
-        </section>
-    )
+        {/* Bottom tagline */}
+        <p className="text-center text-gray-500 mt-8 text-sm">
+          Join thousands of developers who landed their dream jobs with ApplyBot
+        </p>
+      </div>
+    </section>
+  );
 }
