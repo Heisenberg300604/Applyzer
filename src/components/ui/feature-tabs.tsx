@@ -51,7 +51,7 @@ const FeatureTabs = ({
 
   return (
     <section className="py-32 bg-white">
-      <div className="container mx-auto px-6 max-w-7xl">
+      <div className="container mx-auto px-4 max-w-[1400px]">
         <div className="flex flex-col items-center gap-6 text-center mb-16">
           <Badge variant="outline" className="text-xs uppercase tracking-wider font-semibold border-orange-500 text-orange-500">
             {badge}
@@ -77,7 +77,7 @@ const FeatureTabs = ({
             ))}
           </TabsList>
 
-          <div className="mx-auto max-w-7xl rounded-2xl bg-gray-50 p-8 lg:p-20">
+          <div className="mx-auto max-w-[1400px] rounded-2xl bg-gray-50 border-2 border-black p-8 lg:p-20">
             {tabs.map((tab) => (
               <TabsContent
                 key={tab.value}

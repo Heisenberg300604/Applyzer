@@ -1,4 +1,4 @@
-import { FileText, Send, BarChart3 } from "lucide-react";
+import { FileText, Send, Mail, Zap } from "lucide-react";
 import { FeatureTabs } from "@/components/ui/feature-tabs";
 
 export default function FeaturesSection() {
@@ -6,46 +6,61 @@ export default function FeaturesSection() {
     {
       value: "tab-1",
       icon: <FileText className="h-auto w-4 shrink-0" />,
-      label: "WhatsApp-First Pipeline",
+      label: "AI Resume Generation",
       content: {
-        badge: "Real-Time Alerts",
-        title: "One-click apply from WhatsApp.",
+        badge: "Smart Tailoring",
+        title: "Tailored resumes for every job.",
         description:
-          "Get instant job match notifications on WhatsApp. Reply 'YES' to apply without opening a dashboard. Native integration for real-time application triggers ensures you never miss an opportunity. Built for the Indian market where WhatsApp is king.",
-        buttonText: "Try WhatsApp Flow",
+          "Our AI automatically generates customized resumes for each application. It analyzes job descriptions and selects your most relevant experience, skills, and projects. Every resume is optimized to match what recruiters are looking for—no manual editing required.",
+        buttonText: "Generate Resume",
         buttonLink: "/sign-up",
         imageSrc: "/ai resume generation.png",
-        imageAlt: "WhatsApp-first job application flow",
+        imageAlt: "AI-powered resume generation interface",
       },
     },
     {
       value: "tab-2",
-      icon: <Send className="h-auto w-4 shrink-0" />,
-      label: "Human-in-the-Loop",
+      icon: <Mail className="h-auto w-4 shrink-0" />,
+      label: "Gmail Integration",
       content: {
-        badge: "Quality Control",
-        title: "Review AI output before sending.",
+        badge: "OAuth Secured",
+        title: "Send directly from your Gmail.",
         description:
-          "Unlike fully automated tools, APPLYZERgives you control. Review and tweak AI-generated resumes and emails before they hit a recruiter's inbox. Our Executive plan includes expert human review to ensure every application is perfect. You stay in command.",
-        buttonText: "See Review Process",
+          "OAuth2-secured integration sends applications directly from your Gmail account. Personalized cold emails with your authentic sender identity. Track replies in real-time and maintain professional communication. No third-party email addresses—it's all you.",
+        buttonText: "Connect Gmail",
         buttonLink: "/sign-up",
         imageSrc: "/automated outreach.png",
-        imageAlt: "Human-in-the-loop review interface",
+        imageAlt: "Gmail integration for automated outreach",
       },
     },
     {
       value: "tab-3",
-      icon: <BarChart3 className="h-auto w-4 shrink-0" />,
-      label: "ATS Score Gamification",
+      icon: <Send className="h-auto w-4 shrink-0" />,
+      label: "Application Tracking",
       content: {
-        badge: "Competitive Edge",
-        title: "Beat ATS with data-driven insights.",
+        badge: "Real-Time Updates",
+        title: "Track every application in one place.",
         description:
-          "See your exact ATS Match Score for every job. Our TF-IDF algorithm shows you're 85% match for Google—add 'Redis' to reach 95%. Gamified metrics help you optimize your profile strategically. Know exactly what recruiters see before you apply.",
-        buttonText: "Check Your Score",
+          "Centralized dashboard shows all your applications with real-time status updates. Monitor reply rates, track follow-ups, and see detailed analytics. Google Sheets-backed tracker with reply detection ensures you never lose track of opportunities. 34% average reply rate.",
+        buttonText: "View Dashboard",
         buttonLink: "/sign-up",
         imageSrc: "/application tracker.png",
-        imageAlt: "ATS score dashboard with optimization suggestions",
+        imageAlt: "Application tracking dashboard with analytics",
+      },
+    },
+    {
+      value: "tab-4",
+      icon: <Zap className="h-auto w-4 shrink-0" />,
+      label: "Bulk Applications",
+      content: {
+        badge: "Scale Fast",
+        title: "Apply to multiple jobs instantly.",
+        description:
+          "Submit applications to dozens of jobs simultaneously with AI optimization for each one. Our bulk application feature maintains quality while maximizing quantity. Perfect for aggressive job searches. Apply to 100+ jobs in the time it takes to manually apply to one.",
+        buttonText: "Start Bulk Apply",
+        buttonLink: "/sign-up",
+        imageSrc: "/feature-tracker.png",
+        imageAlt: "Bulk application interface showing multiple submissions",
       },
     },
   ];
@@ -55,7 +70,7 @@ export default function FeaturesSection() {
       <FeatureTabs
         badge="Competitive Advantages"
         heading="Features That Give You an Unfair Edge"
-        description="Built specifically for the Indian job market. WhatsApp integration, human oversight, and ATS optimization that actually works."
+        description="Built specifically for the Indian job market. AI-powered automation, Gmail integration, and real-time tracking that actually works."
         tabs={tabs}
       />
     </div>
