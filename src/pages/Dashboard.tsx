@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { Search, RefreshCw, TrendingUp, Mail, CheckCircle2, Clock, XCircle, Send, Eye, Loader2 } from 'lucide-react'
 import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
+import { AnimatedDashboardCard } from '@/components/ui/animated-dashboard-card'
 import { getApplications, getJobs, type ApiApplication, type ApiJob } from '@/lib/api'
 
 type AppStatus = 'Sent' | 'Replied' | 'No Reply' | 'Follow-up Sent'
@@ -138,21 +139,27 @@ export default function Dashboard() {
         </InteractiveHoverButton>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total Applied', value: stats.total, valueColor: 'text-orange-500', icon: Send },
-          { label: 'Replies Received', value: stats.replied, valueColor: 'text-gray-900', icon: CheckCircle2 },
-          { label: 'No Reply', value: stats.noReply, valueColor: 'text-gray-900', icon: Clock },
-          { label: 'Reply Rate', value: `${replyRate}%`, valueColor: 'text-orange-500', icon: TrendingUp },
-        ].map(({ label, value, valueColor, icon: Icon }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-sm p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
-              <Icon className="w-4 h-4 text-gray-300" />
-            </div>
-            <p className={`text-3xl font-black ${valueColor}`}>{value}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Animated Dashboard Card - Takes 1 column */}
+        <div className="lg:col-span-1 h-80">
+          <AnimatedDashboardCard
+            leftLabel="Total Applied"
+            rightLabel="Replies Received"
+            leftValue={stats.total}
+            rightValue={stats.replied}
+            leftDotColor="#f97316"
+            rightDotColor="#0a0a0a"
+          />
+        </div>
+
+        {/* Banner Image - Takes 2 columns */}
+        <div className="lg:col-span-2 h-80 bg-white border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg">
+          <img
+            src="/dashbanner.png"
+            alt="Application Dashboard Banner"
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
       </div>
 
       <div className="bg-white border border-gray-200 p-4 mb-0 flex flex-wrap gap-3 items-center rounded-t-sm border-b-0">
