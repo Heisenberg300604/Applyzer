@@ -13,7 +13,6 @@ import Profile from '@/pages/Profile'
 import Jobs from '@/pages/Jobs'
 import Apply from '@/pages/Apply'
 import Resume from '@/pages/Resume'
-import Notifications from '@/pages/Notifications'
 
 // 404 catch-all
 const NotFound = () => (
@@ -51,7 +50,6 @@ export default function App() {
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/apply" element={<Apply />} />
             <Route path="/resume" element={<Resume />} />
-            <Route path="/notifications" element={<Notifications />} />
           </Route>
 
           {/* ── 404 ─────────────────────────────────────────────── */}

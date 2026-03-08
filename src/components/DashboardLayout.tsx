@@ -1,15 +1,15 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useUser } from '@/context/UserContext'
+import { useUser as useClerkUser } from '@clerk/react'
 import {
     LayoutDashboard, User, Briefcase, Zap,
-    FileText, Bell, LogOut, ChevronRight
+    FileText, LogOut, ChevronRight
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
     DropdownMenu, DropdownMenuContent,
     DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -17,15 +17,21 @@ const navItems = [
     { to: '/profile', icon: User, label: 'My Profile' },
     { to: '/jobs', icon: Briefcase, label: 'Find Jobs' },
     { to: '/apply', icon: Zap, label: 'Bulk Apply' },
-    { to: '/resume', icon: FileText, label: 'Resume & CL' },
-    { to: '/notifications', icon: Bell, label: 'Notifications', badge: '3' },
+    { to: '/resume', icon: FileText, label: 'Resume & CL' }
 ]
 
 export default function DashboardLayout() {
     const { userId, logout } = useUser()
+    const { user } = useClerkUser()
     const navigate = useNavigate()
 
     const handleLogout = () => { logout(); navigate('/') }
+    const fullName = user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || `User #${userId || '—'}`
+    const primaryEmail = user?.primaryEmailAddress?.emailAddress || 'Applyzer account'
+    const initials =
+        ((user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')) ||
+        primaryEmail.slice(0, 2).toUpperCase() ||
+        'AB'
 
     return (
         <div className="min-h-screen bg-white flex">
@@ -54,11 +60,6 @@ export default function DashboardLayout() {
                                 <>
                                     <item.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-white' : 'text-gray-400')} />
                                     <span className="flex-1">{item.label}</span>
-                                    {item.badge && (
-                                        <Badge className={cn('text-xs px-1.5 py-0', isActive ? 'bg-white text-orange-500 border-white' : 'bg-orange-500 text-white border-orange-500')}>
-                                            {item.badge}
-                                        </Badge>
-                                    )}
                                 </>
                             )}
                         </NavLink>
@@ -72,12 +73,12 @@ export default function DashboardLayout() {
                             <button className="flex items-center gap-3 w-full hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200 group">
                                 <Avatar className="w-8 h-8">
                                     <AvatarFallback className="bg-orange-500 text-white text-xs font-semibold">
-                                        {userId ? `U${userId}` : 'AB'}
+                                        {initials.toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 text-left min-w-0">
-                                    <p className="text-sm font-semibold text-gray-900 truncate">User #{userId || '—'}</p>
-                                    <p className="text-xs text-gray-400">Applyzer account</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{fullName}</p>
+                                    <p className="text-xs text-gray-400 truncate">{primaryEmail}</p>
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-gray-400 transition-colors" />
                             </button>

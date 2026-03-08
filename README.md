@@ -101,7 +101,6 @@ src/
 │   ├── Apply.tsx
 │   ├── Profile.tsx
 │   ├── Resume.tsx
-│   ├── Notifications.tsx
 │   └── SignIn/Signup.tsx
 ├── context/             # React Context for state management
 ├── lib/                 # Utility functions and helpers
