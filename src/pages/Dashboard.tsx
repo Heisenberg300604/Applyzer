@@ -78,8 +78,8 @@ export default function Dashboard() {
     setLoading(true)
     try {
       const [applications, jobs] = await Promise.all([
-        getApplications({ user_id: user.id, limit: 200 }),
-        getJobs({ limit: 300 }),
+        getApplications({ user_id: user.id, limit: 100 }),
+        getJobs({ limit: 100 }),
       ])
 
       const jobsById = new Map<string, ApiJob>(jobs.map(job => [job.id, job]))

@@ -32,6 +32,23 @@ export type BulkApplyPayload = {
   send_gap_minutes?: number
 }
 
+export type GeneratedApplicationInfo = {
+  application_id: string | null
+  job_id: string
+  job_title: string | null
+  company: string | null
+  hr_email: string | null
+  success: boolean
+  selected_projects: string[] | null
+  resume_path: string | null
+  cover_letter_path: string | null
+  output_dir: string | null
+  email_subject: string | null
+  email_body_preview: string | null
+  cover_letter_preview: string | null
+  error: string | null
+}
+
 export type BulkApplyResponse = {
   batch_id: string
   status: string
@@ -39,6 +56,40 @@ export type BulkApplyResponse = {
   docs_generated: number
   send_gap_minutes: number
   message: string
+  generated: GeneratedApplicationInfo[]
+  review_url?: string
+}
+
+export type BatchApplicationPreview = {
+  application_id: string
+  job_id: string
+  job_title: string
+  company: string
+  hr_email: string | null
+  status: string
+  email_subject: string | null
+  email_body: string | null
+  cover_letter_preview: string | null
+  resume_path: string | null
+  cover_letter_path: string | null
+  created_at: string
+}
+
+export type BatchReviewResponse = {
+  batch_id: string
+  total: number
+  pending_approval: number
+  applications: BatchApplicationPreview[]
+}
+
+export type BatchApprovePayload = {
+  application_ids?: string[]
+  send_gap_minutes?: number
+}
+
+export type BatchRejectPayload = {
+  application_ids?: string[]
+  reason?: string
 }
 
 const _rawApiUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
@@ -93,9 +144,55 @@ export function getApplications(params: {
   return apiFetch<ApiApplication[]>(`/api/v1/applications/?${query.toString()}`)
 }
 
+export type QuickJobTarget = {
+  title: string
+  company: string
+  description: string
+  hr_email?: string | null
+  location?: string
+}
+
+export type QuickApplyPayload = {
+  user_id: string
+  jobs: QuickJobTarget[]
+  send_gap_minutes?: number
+  profile_data?: Record<string, unknown>
+}
+
 export function bulkApply(payload: BulkApplyPayload) {
   return apiFetch<BulkApplyResponse>('/api/v1/applications/bulk-apply', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export function quickApply(payload: QuickApplyPayload) {
+  return apiFetch<BulkApplyResponse>('/api/v1/applications/quick-apply', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getBatch(batchId: string) {
+  return apiFetch<BatchReviewResponse>(`/api/v1/applications/batches/${batchId}`)
+}
+
+export function approveBatch(batchId: string, payload: BatchApprovePayload) {
+  return apiFetch<{ batch_id: string; approved: number; send_gap_minutes: number; status: string; message: string }>(
+    `/api/v1/applications/batches/${batchId}/approve`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  )
+}
+
+export function rejectBatch(batchId: string, payload: BatchRejectPayload) {
+  return apiFetch<{ batch_id: string; rejected: number; status: string; message: string }>(
+    `/api/v1/applications/batches/${batchId}/reject`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  )
 }
