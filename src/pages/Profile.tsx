@@ -9,6 +9,7 @@ import {
   ExternalLink, LucideGithub, Loader2, Plus, Trash2,
   User, Briefcase, GraduationCap, Code2, Star,
   Sparkles, RefreshCw, CheckCircle2,
+  FileText, Upload, X, ChevronRight,
 } from 'lucide-react'
 import { summarizeRepoWithGemini } from '@/lib/gemini'
 import {
@@ -235,6 +236,14 @@ type BasicInfo = {
 type SkillRow = { id: string; category: string; items: string }
 type EduRow = { id: string; degree: string; institution: string; start_year: string; end_year: string; coursework: string }
 type ExpRow = { id: string; role: string; company: string; location: string; start_month: string; start_year_exp: string; end_month: string; end_year_exp: string; achievements: string }
+
+type ParsedResumeData = {
+  professional_summary?: string
+  skills?: { category: string; items: string[] }[]
+  education?: { degree: string; institution: string; year: string; coursework?: string }[]
+  experiences?: { role: string; company: string; location: string; duration: string; achievements: string[] }[]
+  projects?: { title: string; description: string; technologies: string[]; achievements: string[]; skills_demonstrated: string[]; project_url: string }[]
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -478,6 +487,12 @@ export default function Profile() {
   const [eduRows, setEduRows] = useState<EduRow[]>([blankEdu()])
   const [expRows, setExpRows] = useState<ExpRow[]>([blankExp()])
   const [profileLoaded, setProfileLoaded] = useState(false)
+
+  // ── Resume parser
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [parsingResume, setParsingResume] = useState(false)
+  const [parsedResume, setParsedResume] = useState<ParsedResumeData | null>(null)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
   const [savingProfile, setSavingProfile] = useState(false)
 
   // ── Projects
@@ -587,6 +602,129 @@ export default function Profile() {
 
     void fetchRepos()
   }, [effectiveLucideGithubUsername, githubHeaders])
+
+  // ── Resume parser ──────────────────────────────────────────────────────────
+  const _rawEnvUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
+  // Strip trailing slashes; prepend http:// if no protocol present
+  const apiBaseNorm = _rawEnvUrl.replace(/\/+$/, '').replace(/^(?!https?:\/\/)(.+)/, 'http://$1')
+
+  const handleParseResume = useCallback(async () => {
+    if (!resumeFile) return
+    setParsingResume(true)
+
+    const endpoint = `${apiBaseNorm}/api/v1/profile/parse-resume`
+
+    console.group('%c🔍 Resume Parser — Debug', 'color: #f97316; font-weight: bold')
+    console.log('%c📦 ENV  VITE_API_BASE_URL (raw):', 'color: #6b7280', _rawEnvUrl || '(empty — check .env!)')
+    console.log('%c🌐 API base (normalized):', 'color: #6b7280', apiBaseNorm || '(empty!)')
+    console.log('%c🎯 Full endpoint URL:', 'color: #3b82f6', endpoint)
+    console.log('%c📄 File name:', 'color: #6b7280', resumeFile.name)
+    console.log('%c📏 File size:', 'color: #6b7280', `${(resumeFile.size / 1024).toFixed(1)} KB`)
+    console.log('%c🗂️  File MIME type:', 'color: #6b7280', resumeFile.type || 'application/pdf (assumed)')
+
+    try {
+      const form = new FormData()
+      form.append('file', resumeFile)
+      console.log('%c📤 Sending POST multipart/form-data…', 'color: #8b5cf6')
+      toast.loading('Sending resume to server…', { id: 'resume-parse' })
+
+      let res: Response
+      try {
+        res = await fetch(endpoint, { method: 'POST', body: form })
+      } catch (networkErr) {
+        console.error('%c🔌 Network/CORS error (fetch threw):', 'color: red', networkErr)
+        console.error('Check: is the backend running? Is CORS configured for this origin?')
+        console.groupEnd()
+        toast.error('Network error — cannot reach backend. Check console.', { id: 'resume-parse' })
+        return
+      }
+
+      console.log('%c📥 Response status:', 'color: #6b7280', res.status, res.statusText)
+      console.log('%c📋 Response headers:', 'color: #6b7280')
+      res.headers.forEach((v, k) => console.log(`   ${k}: ${v}`))
+
+      const rawText = await res.text()
+      console.log('%c📝 Raw response body:', 'color: #6b7280', rawText.slice(0, 2000))
+
+      if (!res.ok) {
+        console.error('%c❌ Non-OK response:', 'color: red', res.status, rawText)
+        console.groupEnd()
+        toast.error(`Server error ${res.status} — ${rawText.slice(0, 120)}`, { id: 'resume-parse' })
+        throw new Error(`Parse failed (${res.status}): ${rawText}`)
+      }
+
+      let json: { success: boolean; parsed_data: ParsedResumeData }
+      try {
+        json = JSON.parse(rawText)
+      } catch (jsonErr) {
+        console.error('%c❌ JSON parse error:', 'color: red', jsonErr)
+        console.error('Raw text:', rawText)
+        console.groupEnd()
+        toast.error('Server returned non-JSON. Check console.', { id: 'resume-parse' })
+        throw new Error('Invalid JSON from server')
+      }
+
+      const d = json.parsed_data
+      console.log('%c✅ Parsed JSON:', 'color: #10b981', json)
+      console.log('%c📊 Extraction summary:', 'color: #10b981')
+      console.log('   professional_summary:', d?.professional_summary ? '✓' : '✗ (missing)')
+      console.log('   skills categories:   ', d?.skills?.length ?? 0)
+      console.log('   education entries:   ', d?.education?.length ?? 0)
+      console.log('   experience entries:  ', d?.experiences?.length ?? 0)
+      console.log('   projects:            ', d?.projects?.length ?? 0)
+      console.groupEnd()
+
+      const skillCount = d?.skills?.length ?? 0
+      const expCount = d?.experiences?.length ?? 0
+      toast.success(
+        `Parsed! ${expCount} role${expCount !== 1 ? 's' : ''}, ${skillCount} skill categor${skillCount !== 1 ? 'ies' : 'y'} found.`,
+        { id: 'resume-parse' }
+      )
+      setParsedResume(d)
+
+    } catch (e: unknown) {
+      if (!((e as Error)?.message?.includes('Parse failed') || (e as Error)?.message?.includes('Invalid JSON'))) {
+        console.error('%c💥 Unhandled error:', 'color: red', e)
+        console.groupEnd()
+        toast.error(e instanceof Error ? e.message : 'Resume parsing failed.', { id: 'resume-parse' })
+      }
+    } finally {
+      setParsingResume(false)
+    }
+  }, [resumeFile, apiBaseNorm, _rawEnvUrl])
+
+  const applyParsedResume = useCallback(() => {
+    if (!parsedResume) return
+    if (parsedResume.professional_summary) {
+      setBasic(p => ({ ...p, professional_summary: parsedResume.professional_summary! }))
+    }
+    if (parsedResume.skills?.length) {
+      setSkillRows(parsedResume.skills.map(s => ({ id: uid(), category: s.category, items: s.items.join(', ') })))
+    }
+    if (parsedResume.education?.length) {
+      setEduRows(parsedResume.education.map(e => {
+        const parts = e.year.split(/\s*[–\-]\s*/)
+        return { id: uid(), degree: e.degree, institution: e.institution, start_year: parts[0]?.trim() ?? '', end_year: parts[1]?.trim() ?? e.year, coursework: e.coursework ?? '' }
+      }))
+    }
+    if (parsedResume.experiences?.length) {
+      setExpRows(parsedResume.experiences.map(e => {
+        const parseMonthYear = (s: string) => {
+          const t = s.trim().split(/\s+/)
+          if (t.length >= 2 && MONTHS.includes(t[0])) return { month: t[0], year: t.slice(1).join(' ') }
+          return { month: '', year: s.trim() }
+        }
+        const parts = e.duration.split(/\s*[–\-]\s*/)
+        const from = parseMonthYear(parts[0] ?? '')
+        const to = parseMonthYear(parts[1] ?? '')
+        return { id: uid(), role: e.role, company: e.company, location: e.location, start_month: from.month, start_year_exp: from.year, end_month: to.month, end_year_exp: to.year, achievements: e.achievements.join('\n') }
+      }))
+    }
+    setParsedResume(null)
+    setResumeFile(null)
+    if (resumeInputRef.current) resumeInputRef.current.value = ''
+    toast.success('Resume data applied! Review and save.')
+  }, [parsedResume])
 
   // ── Save profile ───────────────────────────────────────────────────────────
   const handleSaveProfile = useCallback(async () => {
@@ -805,6 +943,151 @@ export default function Profile() {
       {/* ── PROFILE TAB ───────────────────────────────────────────────────── */}
       {activeTab === 'profile' && (
         <div className="space-y-6">
+
+          {/* Resume Parser */}
+          <div className="bg-white border border-orange-200 rounded-sm shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="w-3.5 h-3.5 text-orange-500" />
+              <h2 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Quick-fill from Resume</h2>
+              <span className="ml-auto text-xs text-gray-400">PDF only · max 5 MB</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex-1 flex items-center gap-2 border border-dashed border-gray-300 rounded-sm px-4 py-2.5 cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-colors">
+                <Upload className="w-4 h-4 text-gray-400 shrink-0" />
+                <span className="text-sm text-gray-500 truncate">
+                  {resumeFile ? resumeFile.name : 'Click to choose your resume PDF…'}
+                </span>
+                <input
+                  ref={resumeInputRef}
+                  type="file"
+                  accept=".pdf"
+                  className="hidden"
+                  onChange={e => setResumeFile(e.target.files?.[0] ?? null)}
+                />
+              </label>
+              <InteractiveHoverButton
+                onClick={handleParseResume}
+                disabled={!resumeFile || parsingResume}
+                className="rounded-none gap-2 py-2.5 px-5 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                {parsingResume ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Parsing…</> : <><Sparkles className="w-3.5 h-3.5" /> Parse Resume</>}
+              </InteractiveHoverButton>
+            </div>
+          </div>
+
+          {/* Parsed Resume Preview Overlay */}
+          {parsedResume && (
+            <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-end" onClick={() => setParsedResume(null)}>
+              <div
+                className="w-full max-w-xl h-full bg-white shadow-2xl flex flex-col overflow-hidden"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-orange-500" />
+                    <span className="font-semibold text-gray-800 text-sm">Parsed Resume Preview</span>
+                  </div>
+                  <button onClick={() => setParsedResume(null)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5 text-sm">
+
+                  {parsedResume.professional_summary && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Summary</p>
+                      <p className="text-gray-700 text-sm leading-relaxed">{parsedResume.professional_summary}</p>
+                    </div>
+                  )}
+
+                  {parsedResume.skills?.length ? (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Skills</p>
+                      <div className="space-y-2">
+                        {parsedResume.skills.map(s => (
+                          <div key={s.category}>
+                            <span className="text-xs font-medium text-gray-500">{s.category}: </span>
+                            <span className="text-xs text-gray-700">{s.items.join(', ')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {parsedResume.education?.length ? (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Education</p>
+                      <div className="space-y-2">
+                        {parsedResume.education.map((e, i) => (
+                          <div key={i} className="border-l-2 border-orange-200 pl-3">
+                            <p className="font-medium text-gray-800 text-xs">{e.degree}</p>
+                            <p className="text-gray-500 text-xs">{e.institution} · {e.year}</p>
+                            {e.coursework && <p className="text-gray-400 text-xs mt-0.5">{e.coursework}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {parsedResume.experiences?.length ? (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Experience</p>
+                      <div className="space-y-3">
+                        {parsedResume.experiences.map((e, i) => (
+                          <div key={i} className="border-l-2 border-orange-200 pl-3">
+                            <p className="font-medium text-gray-800 text-xs">{e.role} · <span className="font-normal text-gray-600">{e.company}</span></p>
+                            <p className="text-gray-400 text-xs">{e.duration}{e.location ? ` · ${e.location}` : ''}</p>
+                            <ul className="mt-1 space-y-0.5">
+                              {e.achievements.map((a, j) => (
+                                <li key={j} className="text-gray-600 text-xs flex gap-1.5">
+                                  <ChevronRight className="w-3 h-3 text-orange-400 shrink-0 mt-0.5" />{a}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {parsedResume.projects?.length ? (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Projects <span className="normal-case font-normal text-gray-400">(info only — sync from GitHub tab)</span></p>
+                      <div className="space-y-2">
+                        {parsedResume.projects.map((p, i) => (
+                          <div key={i} className="border-l-2 border-gray-200 pl-3">
+                            <p className="font-medium text-gray-800 text-xs">{p.title}</p>
+                            <p className="text-gray-500 text-xs">{p.description}</p>
+                            {p.technologies?.length ? <p className="text-xs text-orange-500 mt-0.5">{p.technologies.join(', ')}</p> : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-200 flex gap-3 shrink-0">
+                  <InteractiveHoverButton
+                    onClick={applyParsedResume}
+                    className="flex-1 rounded-none gap-2 py-2.5 text-sm justify-center"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Apply to Profile
+                  </InteractiveHoverButton>
+                  <button
+                    onClick={() => setParsedResume(null)}
+                    className="px-4 py-2.5 text-sm text-gray-500 border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors"
+                  >
+                    Discard
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Basic Info */}
           <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-6">
