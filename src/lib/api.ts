@@ -92,6 +92,21 @@ export type BatchRejectPayload = {
   reason?: string
 }
 
+export type FollowUpRequest = {
+  original_subject: string
+  job_title: string
+  company_name: string
+  followup_count?: number
+  user_name?: string
+  days_since_sent?: number
+}
+
+export type FollowUpResponse = {
+  subject: string
+  body: string
+  followup_count: number
+}
+
 const _rawApiUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
 const API_BASE_URL = _rawApiUrl && !_rawApiUrl.startsWith('http') ? `http://${_rawApiUrl}` : _rawApiUrl
 
@@ -195,4 +210,19 @@ export function rejectBatch(batchId: string, payload: BatchRejectPayload) {
       body: JSON.stringify(payload),
     }
   )
+}
+
+export function checkRepliesManual() {
+  return apiFetch<any>('/api/v1/bulk-email/check-replies', { method: 'POST' })
+}
+
+export function sendAutoFollowups() {
+  return apiFetch<any>('/api/v1/bulk-email/send-followups', { method: 'POST' })
+}
+
+export function generateFollowupEmail(payload: FollowUpRequest) {
+  return apiFetch<FollowUpResponse>('/api/v1/ai/generate-followup', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }

@@ -5,20 +5,23 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Toaster } from '@/components/ui/sonner'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { Search, RefreshCw, TrendingUp, Mail, CheckCircle2, Clock, XCircle, Send, Eye, Loader2 } from 'lucide-react'
+import { Search, RefreshCw, TrendingUp, Mail, CheckCircle2, Clock, XCircle, Send, Eye, Loader2, Reply, Bot, Copy } from 'lucide-react'
 import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
-import { getApplications, getJobs, type ApiApplication, type ApiJob } from '@/lib/api'
+import { checkRepliesManual, generateFollowupEmail, getApplications, getJobs, sendAutoFollowups, type ApiApplication, type ApiJob, type FollowUpResponse } from '@/lib/api'
 
 type AppStatus = 'Sent' | 'Replied' | 'No Reply' | 'Follow-up Sent'
 type EmailStatus = 'Delivered' | 'Bounced' | 'Pending'
 
 type ApplicationRow = {
   id: string
+  jobId: string
   company: string
   logo: string
   role: string
   dateSent: string
+  sentAtRaw: string
   emailStatus: EmailStatus
   replyStatus: AppStatus
   followUps: number
@@ -67,6 +70,10 @@ export default function Dashboard() {
   const [statusF, setStatusF] = useState('all')
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState<ApplicationRow[]>([])
+  const [manualFollowupLoadingId, setManualFollowupLoadingId] = useState<string | null>(null)
+  const [autoFollowupLoading, setAutoFollowupLoading] = useState(false)
+  const [checkRepliesLoading, setCheckRepliesLoading] = useState(false)
+  const [followupPreview, setFollowupPreview] = useState<(FollowUpResponse & { jobTitle: string; company: string }) | null>(null)
 
   const loadData = async () => {
     if (!user?.id) {
@@ -87,10 +94,12 @@ export default function Dashboard() {
         const job = jobsById.get(application.job_id)
         return {
           id: application.id,
+          jobId: application.job_id,
           company: job?.company || 'Unknown Company',
           logo: initials(job?.company || 'UC'),
           role: job?.title || 'Unknown Role',
           dateSent: formatDate(application.sent_at || application.created_at),
+          sentAtRaw: application.sent_at || application.created_at,
           emailStatus: toEmailStatus(application),
           replyStatus: toReplyStatus(application),
           followUps: application.followup_count || 0,
@@ -125,6 +134,61 @@ export default function Dashboard() {
   }
   const replyRate = stats.total ? Math.round((stats.replied / stats.total) * 100) : 0
 
+  const daysSince = (value: string) => {
+    const time = new Date(value).getTime()
+    if (Number.isNaN(time)) return 3
+    const diff = Date.now() - time
+    return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)))
+  }
+
+  const handleManualFollowup = async (app: ApplicationRow) => {
+    setManualFollowupLoadingId(app.id)
+    try {
+      const response = await generateFollowupEmail({
+        original_subject: `Re: ${app.role} at ${app.company}`,
+        job_title: app.role,
+        company_name: app.company,
+        followup_count: app.followUps + 1,
+        user_name: user?.fullName || 'Candidate',
+        days_since_sent: daysSince(app.sentAtRaw),
+      })
+      setFollowupPreview({ ...response, jobTitle: app.role, company: app.company })
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to generate manual follow-up.', { description: error instanceof Error ? error.message.slice(0, 180) : 'Unknown error' })
+    } finally {
+      setManualFollowupLoadingId(null)
+    }
+  }
+
+  const handleAutoFollowups = async () => {
+    setAutoFollowupLoading(true)
+    try {
+      const response = await sendAutoFollowups()
+      toast.success('Automatic follow-up generation triggered.', { description: response?.message || 'Backend accepted the request.' })
+      await loadData()
+    } catch (error) {
+      console.error(error)
+      toast.error('Auto follow-up trigger failed.', { description: error instanceof Error ? error.message.slice(0, 180) : 'Unknown error' })
+    } finally {
+      setAutoFollowupLoading(false)
+    }
+  }
+
+  const handleCheckReplies = async () => {
+    setCheckRepliesLoading(true)
+    try {
+      const response = await checkRepliesManual()
+      toast.success('Reply check completed.', { description: response?.message || 'Backend scanned inbox replies.' })
+      await loadData()
+    } catch (error) {
+      console.error(error)
+      toast.error('Reply check failed.', { description: error instanceof Error ? error.message.slice(0, 180) : 'Unknown error' })
+    } finally {
+      setCheckRepliesLoading(false)
+    }
+  }
+
   return (
     <div className="p-8">
       <Toaster />
@@ -133,9 +197,17 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Application Tracker</h1>
           <p className="text-gray-500 text-sm">Monitor your sent applications, replies, and follow-ups.</p>
         </div>
-        <InteractiveHoverButton onClick={() => void loadData()} className="rounded-none text-sm gap-2 px-5 py-2">
-          <RefreshCw className="w-4 h-4" /> Refresh
-        </InteractiveHoverButton>
+        <div className="flex gap-2">
+          <InteractiveHoverButton onClick={handleCheckReplies} disabled={checkRepliesLoading} className="rounded-none text-sm gap-2 px-5 py-2 disabled:opacity-60">
+            {checkRepliesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} Check Replies
+          </InteractiveHoverButton>
+          <InteractiveHoverButton onClick={handleAutoFollowups} disabled={autoFollowupLoading} className="rounded-none text-sm gap-2 px-5 py-2 disabled:opacity-60">
+            {autoFollowupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />} Auto Followbacks
+          </InteractiveHoverButton>
+          <InteractiveHoverButton onClick={() => void loadData()} className="rounded-none text-sm gap-2 px-5 py-2">
+            <RefreshCw className="w-4 h-4" /> Refresh
+          </InteractiveHoverButton>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -204,6 +276,14 @@ export default function Dashboard() {
                     <TableCell>
                       <div className="flex gap-1">
                         <button onClick={() => toast.info(`Checked application ${app.id}`)} className="p-1.5 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-colors rounded-sm" title="Check for reply"><RefreshCw className="w-3.5 h-3.5" /></button>
+                        <button
+                          onClick={() => void handleManualFollowup(app)}
+                          disabled={manualFollowupLoadingId === app.id || app.replyStatus !== 'Replied'}
+                          className="p-1.5 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-colors rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                          title={app.replyStatus === 'Replied' ? 'Generate manual follow-back' : 'Manual follow-back available after reply'}
+                        >
+                          {manualFollowupLoadingId === app.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Reply className="w-3.5 h-3.5" />}
+                        </button>
                         <button className="p-1.5 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-colors rounded-sm" title="View application"><Eye className="w-3.5 h-3.5" /></button>
                       </div>
                     </TableCell>
@@ -221,6 +301,39 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!followupPreview} onOpenChange={open => { if (!open) setFollowupPreview(null) }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Manual Follow-back Draft</DialogTitle>
+            <DialogDescription>
+              Review this follow-back for {followupPreview?.jobTitle} at {followupPreview?.company}, then send it manually.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Subject</p>
+              <div className="border border-gray-200 rounded-sm p-2 text-sm bg-gray-50">{followupPreview?.subject || ''}</div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Body</p>
+              <textarea readOnly value={followupPreview?.body || ''} className="w-full h-52 border border-gray-200 rounded-sm p-2 text-sm bg-gray-50" />
+            </div>
+          </div>
+          <DialogFooter>
+            <InteractiveHoverButton
+              onClick={() => {
+                if (!followupPreview) return
+                navigator.clipboard.writeText(`Subject: ${followupPreview.subject}\n\n${followupPreview.body}`)
+                toast.success('Follow-back copied to clipboard.')
+              }}
+              className="rounded-none text-sm gap-2 px-4 py-2"
+            >
+              <Copy className="w-4 h-4" /> Copy Follow-back
+            </InteractiveHoverButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
