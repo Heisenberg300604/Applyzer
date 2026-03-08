@@ -21,7 +21,7 @@ export default function DashboardScrollSection() {
         }
       >
         <img
-          src="/dash.jpeg"
+          src="/image.png"
           alt="APPLYZERDashboard - Intuitive job application management"
           className="mx-auto rounded-2xl object-cover h-full object-left-top w-full"
           draggable={false}
