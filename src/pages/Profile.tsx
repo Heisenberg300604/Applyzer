@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useUser as useClerkUser } from '@clerk/react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
@@ -484,6 +485,8 @@ export default function Profile() {
   })
   const [skillRows, setSkillRows] = useState<SkillRow[]>([blankSkill()])
   const [presetsOpen, setPresetsOpen] = useState(true)
+  const [presetCategory, setPresetCategory] = useState(SKILL_PRESETS[0].category)
+  const [presetSkill, setPresetSkill] = useState('')
   const [eduRows, setEduRows] = useState<EduRow[]>([blankEdu()])
   const [expRows, setExpRows] = useState<ExpRow[]>([blankExp()])
   const [profileLoaded, setProfileLoaded] = useState(false)
@@ -526,6 +529,56 @@ export default function Profile() {
 
   // Use saved github_username first, fall back to Clerk OAuth account
   const effectiveLucideGithubUsername = basic.github_username.trim() || clerkLucideGithubUsername
+
+  const activePreset = useMemo(
+    () => SKILL_PRESETS.find(p => p.category === presetCategory) ?? SKILL_PRESETS[0],
+    [presetCategory],
+  )
+
+  const selectedPresetSkills = useMemo(() => {
+    const row = skillRows.find(r => r.category.toLowerCase() === presetCategory.toLowerCase())
+    return row ? row.items.split(',').map(s => s.trim()).filter(Boolean) : []
+  }, [skillRows, presetCategory])
+
+  const addPresetSkill = useCallback((category: string, skill: string) => {
+    const nextSkill = skill.trim()
+    if (!nextSkill) return
+
+    setSkillRows(prev => {
+      const idx = prev.findIndex(r => r.category.toLowerCase() === category.toLowerCase())
+      if (idx === -1) {
+        return [...prev, { id: uid(), category, items: nextSkill }]
+      }
+
+      const row = prev[idx]
+      const current = row.items.split(',').map(s => s.trim()).filter(Boolean)
+      if (current.some(s => s.toLowerCase() === nextSkill.toLowerCase())) return prev
+
+      const updated = { ...row, items: [...current, nextSkill].join(', ') }
+      return prev.map((r, i) => (i === idx ? updated : r))
+    })
+  }, [])
+
+  const removePresetSkill = useCallback((category: string, skill: string) => {
+    setSkillRows(prev => {
+      const idx = prev.findIndex(r => r.category.toLowerCase() === category.toLowerCase())
+      if (idx === -1) return prev
+
+      const row = prev[idx]
+      const next = row.items
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => s.toLowerCase() !== skill.toLowerCase())
+
+      if (next.length === 0) {
+        return prev.filter((_, i) => i !== idx)
+      }
+
+      const updated = { ...row, items: next.join(', ') }
+      return prev.map((r, i) => (i === idx ? updated : r))
+    })
+  }, [])
 
   // ── Load profile + projects on mount ──────────────────────────────────────
   useEffect(() => {
@@ -1188,61 +1241,79 @@ export default function Profile() {
             />
 
             {/* Preset quick-add */}
-            <div className="mb-5 border border-gray-200 rounded-sm bg-gray-50">
+            <div className="mb-5 border border-gray-200 rounded-sm bg-[#FCFAF7]">
               <button
                 type="button"
                 onClick={() => setPresetsOpen(p => !p)}
                 className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:bg-gray-100 transition-colors"
               >
-                <span>Quick-add presets</span>
+                <span>Quick-add skills</span>
                 <span className="text-gray-400">{presetsOpen ? '▲' : '▼'}</span>
               </button>
               {presetsOpen && (
-                <div className="px-4 pb-4 space-y-3 border-t border-gray-200">
-                  {SKILL_PRESETS.map(preset => {
-                    const existingRow = skillRows.find(r => r.category.toLowerCase() === preset.category.toLowerCase())
-                    const activeItems: string[] = existingRow
-                      ? existingRow.items.split(',').map(s => s.trim()).filter(Boolean)
-                      : []
-                    return (
-                      <div key={preset.category}>
-                        <p className="text-xs font-semibold text-gray-500 mt-3 mb-1.5 uppercase tracking-wider">{preset.category}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {preset.items.map(lang => {
-                            const active = activeItems.some(a => a.toLowerCase() === lang.toLowerCase())
+                <div className="px-4 pb-4 pt-3 border-t border-gray-200 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1.5">Category</p>
+                      <Select value={presetCategory} onValueChange={setPresetCategory}>
+                        <SelectTrigger className="bg-white rounded-sm">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SKILL_PRESETS.map(preset => (
+                            <SelectItem key={preset.category} value={preset.category}>{preset.category}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1.5">Add skill</p>
+                      <Select
+                        value={presetSkill || '__none__'}
+                        onValueChange={value => {
+                          if (value === '__none__') return
+                          addPresetSkill(presetCategory, value)
+                          setPresetSkill('')
+                        }}
+                      >
+                        <SelectTrigger className="bg-white rounded-sm">
+                          <SelectValue placeholder={`Select ${presetCategory.toLowerCase()} skill`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__" disabled>Select a skill</SelectItem>
+                          {activePreset.items.map(skill => {
+                            const alreadyAdded = selectedPresetSkills.some(s => s.toLowerCase() === skill.toLowerCase())
                             return (
-                              <button
-                                key={lang}
-                                type="button"
-                                onClick={() => {
-                                  setSkillRows(prev => {
-                                    const idx = prev.findIndex(r => r.category.toLowerCase() === preset.category.toLowerCase())
-                                    if (idx === -1) {
-                                      return [...prev, { id: uid(), category: preset.category, items: lang }]
-                                    }
-                                    const row = prev[idx]
-                                    const current = row.items.split(',').map(s => s.trim()).filter(Boolean)
-                                    const next = active
-                                      ? current.filter(a => a.toLowerCase() !== lang.toLowerCase())
-                                      : [...current, lang]
-                                    const updated = { ...row, items: next.join(', ') }
-                                    return prev.map((r, i) => i === idx ? updated : r)
-                                  })
-                                }}
-                                className={`px-2 py-0.5 rounded-sm text-xs font-medium border transition-colors ${
-                                  active
-                                    ? 'bg-orange-500 text-white border-orange-500'
-                                    : 'bg-white text-gray-600 border-gray-300 hover:border-orange-400 hover:text-orange-500'
-                                }`}
-                              >
-                                {lang}
-                              </button>
+                              <SelectItem key={skill} value={skill} disabled={alreadyAdded}>
+                                {skill}{alreadyAdded ? ' • added' : ''}
+                              </SelectItem>
                             )
                           })}
-                        </div>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Selected in {presetCategory}</p>
+                    {selectedPresetSkills.length === 0 ? (
+                      <p className="text-xs text-gray-400">No skills selected yet.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedPresetSkills.map(skill => (
+                          <button
+                            key={skill}
+                            type="button"
+                            onClick={() => removePresetSkill(presetCategory, skill)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
+                            title="Remove skill"
+                          >
+                            {skill} <X className="w-3 h-3" />
+                          </button>
+                        ))}
                       </div>
-                    )
-                  })}
+                    )}
+                  </div>
                 </div>
               )}
             </div>
