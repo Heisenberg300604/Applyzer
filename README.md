@@ -204,24 +204,12 @@ Contributions are welcome! Please follow these steps:
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 📞 Support & Contact
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/applyzer/issues)
+- **Issues**: [GitHub Issues](https://github.com/Heisenberg300604/applyzer/issues)
 - **Email**: support@applyzer.com
 - **Website**: https://applyzer.com
 
-## 🎯 Roadmap
-
-- [ ] Advanced AI model integration
-- [ ] Multi-language support
-- [ ] Mobile app (iOS/Android)
-- [ ] API for third-party integrations
-- [ ] Custom email domain support
-- [ ] Interview preparation tools
 
 ## 🙏 Acknowledgments
 
@@ -233,4 +221,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Made with ❤️ by the Applyzer Team**
+**Made with ❤️ by the Unit 13**
