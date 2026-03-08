@@ -41,7 +41,8 @@ export type BulkApplyResponse = {
   message: string
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '')
+const _rawApiUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
+const API_BASE_URL = _rawApiUrl && !_rawApiUrl.startsWith('http') ? `http://${_rawApiUrl}` : _rawApiUrl
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_BASE_URL) throw new Error('Missing VITE_API_BASE_URL in .env')
