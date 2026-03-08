@@ -142,8 +142,9 @@ npm i -g vercel
 vercel
 ```
 
+
 ### Deploy to Other Platforms
-- **Netlify**: Connect GitHub repo → Auto-deploy
+- **Netlify**: Connect GitHub repo Auto-deploy
 - **GitHub Pages**: Configure build output
 - **Docker**: Create Dockerfile for containerization
 
