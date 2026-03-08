@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 
 interface AnimatedDashboardCardProps {
   // Content
@@ -68,7 +68,7 @@ export function AnimatedDashboardCard(props: AnimatedDashboardCardProps) {
   const innerDots = generateDots(innerDotsCount!, 90, 150, 150);
 
   // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: {
       opacity: 0,
       y: 20,
@@ -88,7 +88,7 @@ export function AnimatedDashboardCard(props: AnimatedDashboardCardProps) {
     },
   };
 
-  const dotVariants = {
+  const dotVariants: Variants = {
     hidden: {
       opacity: 0,
       scale: 0,
@@ -108,7 +108,7 @@ export function AnimatedDashboardCard(props: AnimatedDashboardCardProps) {
       className="w-full h-full"
       initial={shouldAnimate ? "hidden" : "visible"}
       animate="visible"
-      variants={shouldAnimate ? containerVariants : {}}
+      variants={shouldAnimate ? containerVariants : undefined}
     >
       <motion.div
         className={`${backgroundColor} ${borderColor} border-2 rounded-xl overflow-hidden shadow-lg h-full flex flex-col`}
@@ -133,7 +133,7 @@ export function AnimatedDashboardCard(props: AnimatedDashboardCardProps) {
                   r="5"
                   fill="currentColor"
                   style={{ color: leftDotColor }}
-                  variants={shouldAnimate ? dotVariants : {}}
+                  variants={shouldAnimate ? dotVariants : undefined}
                   initial="hidden"
                   animate="visible"
                 />
@@ -148,7 +148,7 @@ export function AnimatedDashboardCard(props: AnimatedDashboardCardProps) {
                   r="5"
                   fill="currentColor"
                   style={{ color: rightDotColor }}
-                  variants={shouldAnimate ? dotVariants : {}}
+                  variants={shouldAnimate ? dotVariants : undefined}
                   initial="hidden"
                   animate="visible"
                 />

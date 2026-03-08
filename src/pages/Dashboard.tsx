@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useUser as useClerkUser } from '@clerk/react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
+import { CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Toaster } from '@/components/ui/sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { Search, RefreshCw, TrendingUp, Mail, CheckCircle2, Clock, XCircle, Send, Eye, Loader2, Reply, Bot, Copy } from 'lucide-react'
+import { Search, RefreshCw, Mail, CheckCircle2, Clock, XCircle, Send, Eye, Loader2, Reply, Bot, Copy } from 'lucide-react'
 import { AnimatedDashboardCard } from '@/components/ui/animated-dashboard-card'
 import { checkRepliesManual, generateFollowupEmail, getApplications, getJobs, sendAutoFollowups, type ApiApplication, type ApiJob, type FollowUpResponse } from '@/lib/api'
 
@@ -134,7 +134,6 @@ export default function Dashboard() {
     noReply: rows.filter(a => a.replyStatus === 'No Reply').length,
     sent: rows.filter(a => a.replyStatus === 'Sent').length,
   }
-  const replyRate = stats.total ? Math.round((stats.replied / stats.total) * 100) : 0
 
   const daysSince = (value: string) => {
     const time = new Date(value).getTime()
