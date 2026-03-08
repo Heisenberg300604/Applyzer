@@ -334,8 +334,12 @@ export default function Apply() {
 
                       <div>
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Email Preview</div>
-                        <div className="bg-white border rounded-sm p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                          {doc.email_body_preview || 'No preview available.'}
+                        <div className="bg-white border rounded-sm p-3 text-sm text-gray-700">
+                          {doc.email_body_preview ? (
+                            <div dangerouslySetInnerHTML={{ __html: doc.email_body_preview }} />
+                          ) : (
+                            <span className="text-gray-400">No preview available.</span>
+                          )}
                         </div>
                       </div>
 
