@@ -2,14 +2,13 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useUser } from '@/context/UserContext'
 import {
     LayoutDashboard, User, Briefcase, Zap,
-    FileText, Bell, LogOut, ChevronRight
+    FileText, LogOut, ChevronRight
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
     DropdownMenu, DropdownMenuContent,
     DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -17,8 +16,7 @@ const navItems = [
     { to: '/profile', icon: User, label: 'My Profile' },
     { to: '/jobs', icon: Briefcase, label: 'Find Jobs' },
     { to: '/apply', icon: Zap, label: 'Bulk Apply' },
-    { to: '/resume', icon: FileText, label: 'Resume & CL' },
-    { to: '/notifications', icon: Bell, label: 'Notifications', badge: '3' },
+    { to: '/resume', icon: FileText, label: 'Resume & CL' }
 ]
 
 export default function DashboardLayout() {
@@ -54,11 +52,6 @@ export default function DashboardLayout() {
                                 <>
                                     <item.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-white' : 'text-gray-400')} />
                                     <span className="flex-1">{item.label}</span>
-                                    {item.badge && (
-                                        <Badge className={cn('text-xs px-1.5 py-0', isActive ? 'bg-white text-orange-500 border-white' : 'bg-orange-500 text-white border-orange-500')}>
-                                            {item.badge}
-                                        </Badge>
-                                    )}
                                 </>
                             )}
                         </NavLink>
