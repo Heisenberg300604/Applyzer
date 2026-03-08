@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useUser as useClerkUser } from '@clerk/react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -8,7 +10,6 @@ import { Toaster } from '@/components/ui/sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { Search, RefreshCw, TrendingUp, Mail, CheckCircle2, Clock, XCircle, Send, Eye, Loader2, Reply, Bot, Copy } from 'lucide-react'
-import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { checkRepliesManual, generateFollowupEmail, getApplications, getJobs, sendAutoFollowups, type ApiApplication, type ApiJob, type FollowUpResponse } from '@/lib/api'
 
 type AppStatus = 'Sent' | 'Replied' | 'No Reply' | 'Follow-up Sent'
@@ -28,16 +29,16 @@ type ApplicationRow = {
 }
 
 const statusConfig: Record<AppStatus, { color: string; icon: React.ElementType }> = {
-  Sent: { color: 'bg-gray-50 text-gray-600 border-gray-200', icon: Send },
-  Replied: { color: 'bg-orange-50 text-orange-600 border-orange-200', icon: CheckCircle2 },
-  'No Reply': { color: 'bg-gray-100 text-gray-500 border-gray-200', icon: Clock },
-  'Follow-up Sent': { color: 'bg-orange-50 text-orange-500 border-orange-200', icon: RefreshCw },
+  Sent: { color: 'bg-slate-100 text-slate-700 border-slate-200', icon: Send },
+  Replied: { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCircle2 },
+  'No Reply': { color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Clock },
+  'Follow-up Sent': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: RefreshCw },
 }
 
 const emailConfig = {
-  Delivered: 'bg-orange-50 text-orange-600 border-orange-200',
-  Pending: 'bg-gray-50 text-gray-500 border-gray-200',
-  Bounced: 'bg-gray-100 text-gray-600 border-gray-200',
+  Delivered: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  Pending: 'bg-amber-100 text-amber-800 border-amber-200',
+  Bounced: 'bg-rose-100 text-rose-800 border-rose-200',
 }
 
 const initials = (value: string) => value.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()
@@ -190,44 +191,48 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-6 md:p-8 bg-slate-50 min-h-screen">
       <Toaster />
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Application Tracker</h1>
-          <p className="text-gray-500 text-sm">Monitor your sent applications, replies, and follow-ups.</p>
-        </div>
-        <div className="flex gap-2">
-          <InteractiveHoverButton onClick={handleCheckReplies} disabled={checkRepliesLoading} className="rounded-none text-sm gap-2 px-5 py-2 disabled:opacity-60">
-            {checkRepliesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} Check Replies
-          </InteractiveHoverButton>
-          <InteractiveHoverButton onClick={handleAutoFollowups} disabled={autoFollowupLoading} className="rounded-none text-sm gap-2 px-5 py-2 disabled:opacity-60">
-            {autoFollowupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />} Auto Followbacks
-          </InteractiveHoverButton>
-          <InteractiveHoverButton onClick={() => void loadData()} className="rounded-none text-sm gap-2 px-5 py-2">
-            <RefreshCw className="w-4 h-4" /> Refresh
-          </InteractiveHoverButton>
+      <div className="mb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <CardTitle className="text-2xl">Application Tracker</CardTitle>
+            <CardDescription>Monitor sent applications, incoming replies, and follow-backs.</CardDescription>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={handleCheckReplies} disabled={checkRepliesLoading}>
+              {checkRepliesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} Check Replies
+            </Button>
+            <Button variant="outline" onClick={handleAutoFollowups} disabled={autoFollowupLoading}>
+              {autoFollowupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />} Auto Followbacks
+            </Button>
+            <Button variant="default" onClick={() => void loadData()}>
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Applied', value: stats.total, valueColor: 'text-orange-500', icon: Send },
+          { label: 'Total Applied', value: stats.total, valueColor: 'text-slate-900', icon: Send },
           { label: 'Replies Received', value: stats.replied, valueColor: 'text-gray-900', icon: CheckCircle2 },
           { label: 'No Reply', value: stats.noReply, valueColor: 'text-gray-900', icon: Clock },
-          { label: 'Reply Rate', value: `${replyRate}%`, valueColor: 'text-orange-500', icon: TrendingUp },
+          { label: 'Reply Rate', value: `${replyRate}%`, valueColor: 'text-slate-900', icon: TrendingUp },
         ].map(({ label, value, valueColor, icon: Icon }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-sm p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
-              <Icon className="w-4 h-4 text-gray-300" />
-            </div>
-            <p className={`text-3xl font-black ${valueColor}`}>{value}</p>
-          </div>
+          <Card key={label} className="gap-2 py-4">
+            <CardContent className="px-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+                <Icon className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className={`text-3xl font-semibold tracking-tight ${valueColor}`}>{value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 p-4 mb-0 flex flex-wrap gap-3 items-center rounded-t-sm border-b-0">
+      <div className="bg-white border border-gray-200 p-4 flex flex-wrap gap-3 items-center rounded-t-xl border-b-0">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input className="pl-9" placeholder="Search company or role..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -242,23 +247,23 @@ export default function Dashboard() {
             <SelectItem value="Follow-up Sent">Follow-up Sent</SelectItem>
           </SelectContent>
         </Select>
-        <span className="text-xs text-gray-400 font-medium">{filtered.length} results</span>
+        <Badge variant="outline" className="text-xs">{filtered.length} results</Badge>
       </div>
 
-      <div className="bg-white border border-gray-200 overflow-hidden shadow-sm rounded-b-sm">
+      <div className="bg-white border border-gray-200 overflow-hidden shadow-sm rounded-b-xl">
         {loading ? (
-          <div className="py-16 text-center text-gray-500 flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading applications...</div>
+          <div className="py-20 text-center text-gray-500 flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading applications...</div>
         ) : (
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Company</TableHead>
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Role</TableHead>
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Date Sent</TableHead>
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Email</TableHead>
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Reply Status</TableHead>
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Follow-ups</TableHead>
-                <TableHead className="font-semibold text-gray-500 uppercase tracking-wider text-xs">Actions</TableHead>
+              <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-gray-200">
+                <TableHead className="font-medium text-muted-foreground text-xs">Company</TableHead>
+                <TableHead className="font-medium text-muted-foreground text-xs">Role</TableHead>
+                <TableHead className="font-medium text-muted-foreground text-xs">Date Sent</TableHead>
+                <TableHead className="font-medium text-muted-foreground text-xs">Email</TableHead>
+                <TableHead className="font-medium text-muted-foreground text-xs">Reply Status</TableHead>
+                <TableHead className="font-medium text-muted-foreground text-xs">Follow-ups</TableHead>
+                <TableHead className="font-medium text-muted-foreground text-xs">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -266,25 +271,25 @@ export default function Dashboard() {
                 const sc = statusConfig[app.replyStatus]
                 const Icon = sc.icon
                 return (
-                  <TableRow key={app.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
-                    <TableCell><div className="flex items-center gap-2"><span className="font-bold text-sm bg-orange-500 text-white px-2 py-0.5 rounded-sm">{app.logo}</span><span className="font-semibold text-gray-900">{app.company}</span></div></TableCell>
+                  <TableRow key={app.id} className="hover:bg-slate-50 transition-colors border-b border-gray-100">
+                    <TableCell><div className="flex items-center gap-2.5"><span className="font-semibold text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">{app.logo}</span><span className="font-medium text-gray-900">{app.company}</span></div></TableCell>
                     <TableCell className="text-gray-600 text-sm">{app.role}</TableCell>
                     <TableCell className="text-gray-400 text-sm">{app.dateSent}</TableCell>
-                    <TableCell><Badge className={`text-xs border font-medium ${emailConfig[app.emailStatus]}`}><Mail className="w-3 h-3 mr-1" />{app.emailStatus}</Badge></TableCell>
-                    <TableCell><Badge className={`text-xs border flex items-center gap-1 w-fit font-medium ${sc.color}`}><Icon className="w-3 h-3" />{app.replyStatus}</Badge></TableCell>
-                    <TableCell className="text-center"><span className={`text-sm font-bold ${app.followUps > 0 ? 'text-orange-500' : 'text-gray-300'}`}>{app.followUps}</span></TableCell>
+                    <TableCell><Badge className={`text-xs rounded-full border font-medium ${emailConfig[app.emailStatus]}`}><Mail className="w-3 h-3 mr-1" />{app.emailStatus}</Badge></TableCell>
+                    <TableCell><Badge className={`text-xs rounded-full border flex items-center gap-1 w-fit font-medium ${sc.color}`}><Icon className="w-3 h-3" />{app.replyStatus}</Badge></TableCell>
+                    <TableCell className="text-center"><span className={`text-sm font-semibold ${app.followUps > 0 ? 'text-slate-700' : 'text-gray-300'}`}>{app.followUps}</span></TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <button onClick={() => toast.info(`Checked application ${app.id}`)} className="p-1.5 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-colors rounded-sm" title="Check for reply"><RefreshCw className="w-3.5 h-3.5" /></button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => toast.info(`Checked application ${app.id}`)} className="text-gray-500" title="Check for reply"><RefreshCw className="w-3.5 h-3.5" /></Button>
                         <button
                           onClick={() => void handleManualFollowup(app)}
                           disabled={manualFollowupLoadingId === app.id || app.replyStatus !== 'Replied'}
-                          className="p-1.5 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-colors rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="p-2 rounded-md hover:bg-accent text-gray-500 hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           title={app.replyStatus === 'Replied' ? 'Generate manual follow-back' : 'Manual follow-back available after reply'}
                         >
                           {manualFollowupLoadingId === app.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Reply className="w-3.5 h-3.5" />}
                         </button>
-                        <button className="p-1.5 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-colors rounded-sm" title="View application"><Eye className="w-3.5 h-3.5" /></button>
+                        <Button variant="ghost" size="icon-sm" className="text-gray-500" title="View application"><Eye className="w-3.5 h-3.5" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -295,7 +300,7 @@ export default function Dashboard() {
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-20 text-gray-400">
             <XCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="font-semibold text-gray-500">No applications match your filter</p>
           </div>
@@ -313,24 +318,23 @@ export default function Dashboard() {
           <div className="space-y-3">
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Subject</p>
-              <div className="border border-gray-200 rounded-sm p-2 text-sm bg-gray-50">{followupPreview?.subject || ''}</div>
+              <div className="border border-gray-200 rounded-md p-3 text-sm bg-gray-50">{followupPreview?.subject || ''}</div>
             </div>
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Body</p>
-              <textarea readOnly value={followupPreview?.body || ''} className="w-full h-52 border border-gray-200 rounded-sm p-2 text-sm bg-gray-50" />
+              <textarea readOnly value={followupPreview?.body || ''} className="w-full h-52 border border-gray-200 rounded-md p-3 text-sm bg-gray-50" />
             </div>
           </div>
           <DialogFooter>
-            <InteractiveHoverButton
+            <Button
               onClick={() => {
                 if (!followupPreview) return
                 navigator.clipboard.writeText(`Subject: ${followupPreview.subject}\n\n${followupPreview.body}`)
                 toast.success('Follow-back copied to clipboard.')
               }}
-              className="rounded-none text-sm gap-2 px-4 py-2"
             >
               <Copy className="w-4 h-4" /> Copy Follow-back
-            </InteractiveHoverButton>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
