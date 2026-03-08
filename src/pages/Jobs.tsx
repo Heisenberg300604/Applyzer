@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ChangeEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
@@ -7,21 +6,15 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import {
-  Search,
-  MapPin,
-  Building2,
-  Clock,
-  Bookmark,
-  CheckSquare,
-  Square,
-  SlidersHorizontal,
-  ExternalLink,
-  Zap,
-  Upload,
+  Search, MapPin, Building2, Clock, Bookmark,
+  CheckSquare, Square, SlidersHorizontal, ExternalLink,
+  Zap, Sparkles, Layers, RefreshCw, Loader2,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { getProfileMatchedJobs, type SupabaseJobRow } from '@/lib/supabase'
+import { getProfileMatchedJobs, getJobsFromSupabase, type SupabaseJobRow } from '@/lib/supabase'
 import { useUser } from '@/context/UserContext'
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 type Job = {
   id: string
@@ -34,7 +27,13 @@ type Job = {
   posted: string
   logo: string
   description?: string
+  application_email?: string
+  source: 'matched' | 'all'
 }
+
+type SourceTab = 'matched' | 'all'
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const typeColors: Record<string, string> = {
   'Full-time': 'bg-gray-50 text-gray-600 border-gray-200',
@@ -43,155 +42,111 @@ const typeColors: Record<string, string> = {
   'On-site': 'bg-gray-100 text-gray-600 border-gray-200',
 }
 
-const normalizeHeader = (header: string) => header.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
-
-const parseCsvRows = (input: string): string[][] => {
-  const rows: string[][] = []
-  let row: string[] = []
-  let field = ''
-  let inQuotes = false
-
-  for (let i = 0; i < input.length; i++) {
-    const char = input[i]
-    if (char === '"') {
-      const next = input[i + 1]
-      if (inQuotes && next === '"') {
-        field += '"'
-        i++
-      } else {
-        inQuotes = !inQuotes
-      }
-      continue
-    }
-    if (char === ',' && !inQuotes) {
-      row.push(field.trim())
-      field = ''
-      continue
-    }
-    if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (char === '\r' && input[i + 1] === '\n') i++
-      row.push(field.trim())
-      field = ''
-      if (row.some(cell => cell.length > 0)) rows.push(row)
-      row = []
-      continue
-    }
-    field += char
-  }
-
-  if (field.length > 0 || row.length > 0) {
-    row.push(field.trim())
-    if (row.some(cell => cell.length > 0)) rows.push(row)
-  }
-
-  return rows
-}
-
-const parseJobsFromCsv = (csvText: string): Job[] => {
-  const rows = parseCsvRows(csvText)
-  if (rows.length < 2) return []
-
-  const headers = rows[0].map(normalizeHeader)
-  const idx = (keys: string[]) => headers.findIndex(h => keys.includes(h))
-  const titleIdx = idx(['title', 'jobtitle', 'role', 'position'])
-  const companyIdx = idx(['company', 'companyname', 'employer'])
-  const locationIdx = idx(['location', 'city', 'place'])
-  const typeIdx = idx(['type', 'employmenttype', 'jobtype'])
-  const salaryIdx = idx(['salary', 'compensation', 'pay', 'ctc'])
-  const tagsIdx = idx(['tags', 'skills', 'techstack', 'stack'])
-  const postedIdx = idx(['posted', 'postedat', 'date', 'posteddate'])
-  const logoIdx = idx(['logo', 'icon', 'emoji'])
-  const descriptionIdx = idx(['description', 'jobdescription', 'summary', 'details'])
-
-  return rows
-    .slice(1)
-    .map((cells, index): Job | null => {
-      const title = (titleIdx >= 0 ? cells[titleIdx] : '')?.trim()
-      if (!title) return null
-      const tagsRaw = (tagsIdx >= 0 ? cells[tagsIdx] : '') || ''
-      return {
-        id: String(1000 + index),
-        title,
-        company: (companyIdx >= 0 ? cells[companyIdx] : '')?.trim() || 'Unknown Company',
-        location: (locationIdx >= 0 ? cells[locationIdx] : '')?.trim() || 'Location not specified',
-        type: (typeIdx >= 0 ? cells[typeIdx] : '')?.trim() || 'Full-time',
-        salary: (salaryIdx >= 0 ? cells[salaryIdx] : '')?.trim() || 'Not specified',
-        tags: tagsRaw.split(/[|;,]/).map(tag => tag.trim()).filter(Boolean),
-        posted: (postedIdx >= 0 ? cells[postedIdx] : '')?.trim() || 'Recently posted',
-        logo: (logoIdx >= 0 ? cells[logoIdx] : '')?.trim() || 'JB',
-        description: (descriptionIdx >= 0 ? cells[descriptionIdx] : '')?.trim() || '',
-      }
-    })
-    .filter((job): job is Job => Boolean(job))
-}
-
-const makeFallbackId = (job: SupabaseJobRow) => `${job.title || 'job'}-${job.company || 'company'}-${job.location || 'location'}`.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-
-const inferTagsFromDescription = (value?: string | null) => {
+const inferTags = (value?: string | null) => {
   if (!value) return []
-  const tokens = value
-    .toLowerCase()
-    .match(/[a-z][a-z0-9+#.-]{2,}/g) || []
-  const stop = new Set(['the', 'and', 'for', 'with', 'you', 'your', 'this', 'that', 'are', 'from', 'will', 'our', 'job', 'role', 'team'])
-  return [...new Set(tokens.filter(token => !stop.has(token)))].slice(0, 4).map(token => token[0].toUpperCase() + token.slice(1))
+  const tokens = value.toLowerCase().match(/[a-z][a-z0-9+#.-]{2,}/g) || []
+  const stop = new Set(['the', 'and', 'for', 'with', 'you', 'your', 'this', 'that', 'are', 'from', 'will', 'our', 'job', 'role', 'team', 'have', 'not', 'but'])
+  return [...new Set(tokens.filter(t => !stop.has(t)))].slice(0, 5).map(t => t[0].toUpperCase() + t.slice(1))
 }
 
-const mapSupabaseJob = (job: SupabaseJobRow): Job => ({
-  id: String(job.id || makeFallbackId(job)),
+const makeLogo = (company?: string | null) =>
+  (company || 'JB').split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase()
+
+const mapSupabaseJob = (job: SupabaseJobRow, src: 'matched' | 'all'): Job => ({
+  id: String(job.id || `${job.title}-${job.company}`),
   title: job.title || 'Untitled Role',
   company: job.company || 'Unknown Company',
   location: job.location || 'Location not specified',
   type: (job.location || '').toLowerCase().includes('remote') ? 'Remote' : 'Full-time',
   salary: 'Not specified',
-  tags: inferTagsFromDescription(job.description),
-  posted: 'Recently posted',
-  logo: (job.company || 'UC').split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase(),
+  tags: inferTags(job.description),
+  posted: 'Recently',
+  logo: makeLogo(job.company),
   description: job.description || '',
+  application_email: job.application_email || '',
+  source: src,
 })
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Jobs() {
   const { userId } = useUser()
+  const navigate = useNavigate()
+
+  const [matchedJobs, setMatchedJobs] = useState<Job[]>([])
+  const [allJobs, setAllJobs] = useState<Job[]>([])
+  const [allLoaded, setAllLoaded] = useState(false)
+  const [loadingMatched, setLoadingMatched] = useState(false)
+  const [loadingAll, setLoadingAll] = useState(false)
+
+  const [activeTab, setActiveTab] = useState<SourceTab>('matched')
   const [query, setQuery] = useState('')
   const [locationF, setLocationF] = useState('all')
   const [typeF, setTypeF] = useState('all')
   const [selected, setSelected] = useState<string[]>([])
   const [saved, setSaved] = useState<string[]>([])
-  const [csvFileName, setCsvFileName] = useState('')
-  const [jobs, setJobs] = useState<Job[]>([])
-  const [loading, setLoading] = useState(true)
-  const csvInputRef = useRef<HTMLInputElement | null>(null)
-  const navigate = useNavigate()
 
+  // ── Fetch matched on mount ──────────────────────────────────────────────────
   useEffect(() => {
-    const loadJobs = async () => {
-      if (!userId) {
-        setJobs([])
-        setLoading(false)
-        return
-      }
-      try {
-        const supabaseJobs = await getProfileMatchedJobs(userId, 200)
-        setJobs(supabaseJobs.map(mapSupabaseJob))
-        setSelected([])
-        setSaved([])
-        if (!supabaseJobs.length) {
-          toast.info('No matched jobs found for your profile yet.', {
-            description: 'Add/select more projects first so we can match jobs by your extracted skills.',
+    if (!userId) { setLoadingMatched(false); return }
+    setLoadingMatched(true)
+    getProfileMatchedJobs(userId, 200)
+      .then(rows => {
+        const jobs = rows.map(r => mapSupabaseJob(r, 'matched'))
+        setMatchedJobs(jobs)
+        if (jobs.length === 0) {
+          toast.info('No profile-matched jobs yet — showing all available jobs.', {
+            description: 'Complete your profile & sync projects to get personalized matches.',
           })
+          setActiveTab('all')
+          fetchAllJobs()
         } else {
-          toast.success(`Found ${supabaseJobs.length} profile-matched job(s).`)
+          toast.success(`${jobs.length} job${jobs.length !== 1 ? 's' : ''} matched to your profile.`)
         }
-      } catch (error) {
-        console.error('Failed to fetch jobs from Supabase:', error)
-        toast.error('Could not load profile-matched jobs.')
-      } finally {
-        setLoading(false)
-      }
-    }
-    void loadJobs()
+      })
+      .catch(err => {
+        console.error('getProfileMatchedJobs failed:', err)
+        toast.error('Could not load matched jobs. Showing all jobs instead.')
+        setActiveTab('all')
+        fetchAllJobs()
+      })
+      .finally(() => setLoadingMatched(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
-  const filtered = jobs.filter(j => {
+  // ── Fetch all jobs ──────────────────────────────────────────────────────────
+  const fetchAllJobs = async () => {
+    if (allLoaded) return
+    setLoadingAll(true)
+    try {
+      const rows = await getJobsFromSupabase(500)
+      const jobs = rows.map(r => mapSupabaseJob(r, 'all'))
+      setAllJobs(jobs)
+      setAllLoaded(true)
+      if (jobs.length === 0) {
+        toast.info('No jobs in the database yet.')
+      } else {
+        toast.success(`${jobs.length} total job${jobs.length !== 1 ? 's' : ''} loaded.`)
+      }
+    } catch (err) {
+      console.error('getJobsFromSupabase failed:', err)
+      toast.error('Could not load all jobs from database.')
+    } finally {
+      setLoadingAll(false)
+    }
+  }
+
+  const handleTabChange = (tab: SourceTab) => {
+    setActiveTab(tab)
+    setSelected([])
+    if (tab === 'all' && !allLoaded) fetchAllJobs()
+  }
+
+  // ── Derived ─────────────────────────────────────────────────────────────────
+  const activeJobs = activeTab === 'matched' ? matchedJobs : allJobs
+  const isLoading = (activeTab === 'matched' && loadingMatched) || (activeTab === 'all' && loadingAll)
+
+  const filtered = activeJobs.filter(j => {
     const q = query.toLowerCase()
     const matchQ = !query || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || j.tags.some(t => t.toLowerCase().includes(q)) || (j.description || '').toLowerCase().includes(q)
     const matchL = locationF === 'all' || j.location.toLowerCase().includes(locationF.toLowerCase()) || (locationF === 'remote' && j.type === 'Remote')
@@ -199,75 +154,103 @@ export default function Jobs() {
     return matchQ && matchL && matchT
   })
 
-  const toggleSelect = (id: string) => setSelected(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id]))
-  const toggleSave = (id: string) => setSaved(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id]))
-  const selectAll = () => setSelected(filtered.length === selected.length ? [] : filtered.map(j => j.id))
+  const toggleSelect = (id: string) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
+  const toggleSave   = (id: string) => setSaved(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
+  const selectAll    = () => setSelected(filtered.length === selected.length ? [] : filtered.map(j => j.id))
 
   const handleBulkApply = () => {
     if (!selected.length) return toast.error('Select at least one job first!')
-    const selectedJobs = jobs.filter(job => selected.includes(job.id))
-    navigate('/apply', { state: { selectedJobIds: selected, selectedJobs } })
+    navigate('/apply', { state: { selectedJobIds: selected, selectedJobs: activeJobs.filter(j => selected.includes(j.id)) } })
   }
 
-  const handleCsvUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const isCsv = file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv'
-    if (!isCsv) return toast.error('Please upload a .csv file only.')
-    try {
-      const parsedJobs = parseJobsFromCsv(await file.text())
-      if (!parsedJobs.length) return toast.error('No valid job rows found in the CSV.')
-      setJobs(parsedJobs)
-      setSelected([])
-      setSaved([])
-      setCsvFileName(file.name)
-      toast.success(`Loaded ${parsedJobs.length} jobs from ${file.name}`)
-    } catch {
-      toast.error('Failed to parse CSV file.')
-    }
-  }
+  const tabs: { id: SourceTab; label: string; count: number; icon: React.ElementType; desc: string }[] = [
+    { id: 'matched', label: 'Matched for You', count: matchedJobs.length, icon: Sparkles, desc: 'Based on your profile & projects' },
+    { id: 'all',     label: 'All Jobs',         count: allJobs.length,     icon: Layers,   desc: 'Full database listing' },
+  ]
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-7xl mx-auto">
       <Toaster />
-      <div className="flex items-start justify-between mb-8">
+
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Find Jobs</h1>
-          <p className="text-sm text-gray-500">Browse and select jobs for bulk apply. <span className="text-orange-500 font-medium">{filtered.length} results</span></p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Jobs</h1>
+          <p className="text-sm text-gray-500">
+            Browse and select roles for bulk apply.{' '}
+            <span className="text-orange-500 font-medium">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+            {query || locationF !== 'all' || typeF !== 'all' ? ' (filtered)' : ''}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <input ref={csvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleCsvUpload} />
-          <button onClick={() => csvInputRef.current?.click()} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 rounded-sm shadow-sm">
-            <Upload className="w-4 h-4" /> Upload CSV
-          </button>
-          {selected.length > 0 && (
-            <InteractiveHoverButton onClick={handleBulkApply} className="rounded-none gap-2 py-2 px-5 text-sm">
-              <Zap className="w-4 h-4" /> Apply to {selected.length} Job{selected.length > 1 ? 's' : ''}
-            </InteractiveHoverButton>
-          )}
-        </div>
+        {selected.length > 0 && (
+          <InteractiveHoverButton onClick={handleBulkApply} className="rounded-none gap-2 py-2 px-5 text-sm">
+            <Zap className="w-4 h-4" /> Apply to {selected.length} Job{selected.length > 1 ? 's' : ''}
+          </InteractiveHoverButton>
+        )}
       </div>
 
-      {loading && <p className="text-xs text-gray-500 mb-4 uppercase tracking-widest font-bold">Loading jobs from backend...</p>}
-      {csvFileName && <p className="text-xs text-gray-500 -mt-5 mb-5 uppercase tracking-wider font-bold">CSV: <span className="text-black">{csvFileName}</span></p>}
+      {/* Source tabs */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {tabs.map(({ id, label, count, icon: Icon, desc }) => {
+          const active = activeTab === id
+          const loading = (id === 'matched' && loadingMatched) || (id === 'all' && loadingAll)
+          return (
+            <button
+              key={id}
+              onClick={() => handleTabChange(id)}
+              className={`flex items-start gap-3 p-4 border rounded-sm shadow-sm text-left transition-all ${
+                active ? 'border-orange-400 bg-orange-50/50' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50'
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 mt-0.5 ${active ? 'bg-orange-500' : 'bg-gray-100'}`}>
+                {loading
+                  ? <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  : <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-500'}`} />}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-semibold ${active ? 'text-orange-600' : 'text-gray-700'}`}>{label}</span>
+                  {count > 0 && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-sm font-medium ${active ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      {count}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5 truncate">{desc}</p>
+              </div>
+            </button>
+          )
+        })}
+      </div>
 
-      <div className="bg-white border border-gray-200 p-4 mb-6 flex flex-wrap gap-3 items-center rounded-sm shadow-sm">
+      {/* Filters */}
+      <div className="bg-white border border-gray-200 p-4 mb-5 flex flex-wrap gap-3 items-center rounded-sm shadow-sm">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input className="pl-9" placeholder="Search title, company, skill..." value={query} onChange={e => setQuery(e.target.value)} />
+          <Input className="pl-9 rounded-sm" placeholder="Search title, company, skill…" value={query} onChange={e => setQuery(e.target.value)} />
         </div>
         <Select value={locationF} onValueChange={setLocationF}>
-          <SelectTrigger className="w-44"><MapPin className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Location" /></SelectTrigger>
+          <SelectTrigger className="w-44 rounded-sm">
+            <MapPin className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Location" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
             <SelectItem value="remote">Remote</SelectItem>
+            <SelectItem value="Bangalore">Bangalore</SelectItem>
+            <SelectItem value="Hyderabad">Hyderabad</SelectItem>
+            <SelectItem value="Mumbai">Mumbai</SelectItem>
+            <SelectItem value="Delhi">Delhi</SelectItem>
+            <SelectItem value="Pune">Pune</SelectItem>
             <SelectItem value="San Francisco">San Francisco</SelectItem>
             <SelectItem value="New York">New York</SelectItem>
             <SelectItem value="Seattle">Seattle</SelectItem>
           </SelectContent>
         </Select>
         <Select value={typeF} onValueChange={setTypeF}>
-          <SelectTrigger className="w-40"><SlidersHorizontal className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectTrigger className="w-40 rounded-sm">
+            <SlidersHorizontal className="w-4 h-4 text-gray-400 mr-1" /><SelectValue placeholder="Type" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="Full-time">Full-time</SelectItem>
@@ -276,55 +259,156 @@ export default function Jobs() {
             <SelectItem value="On-site">On-site</SelectItem>
           </SelectContent>
         </Select>
-        <button onClick={selectAll} className="text-sm text-gray-500 font-medium hover:text-orange-500 transition-colors whitespace-nowrap">{selected.length === filtered.length ? 'Deselect All' : 'Select All'}</button>
+        <div className="flex items-center gap-3 ml-auto">
+          <button onClick={selectAll} className="text-sm text-gray-500 font-medium hover:text-orange-500 transition-colors whitespace-nowrap">
+            {selected.length > 0 && selected.length === filtered.length ? 'Deselect All' : 'Select All'}
+          </button>
+          {activeTab === 'all' && (
+            <button
+              onClick={() => { setAllLoaded(false); fetchAllJobs() }}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-orange-500 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {filtered.map(job => {
-          const isSelected = selected.includes(job.id)
-          const isSaved = saved.includes(job.id)
-          return (
-            <div key={job.id} className={`bg-white border p-5 transition-all duration-200 cursor-pointer rounded-sm shadow-sm ${isSelected ? 'border-orange-400 bg-orange-50 shadow-orange-100' : 'border-gray-200 hover:border-gray-400 hover:shadow-md'}`} onClick={() => toggleSelect(job.id)}>
-              <div className="flex items-start gap-4">
-                <div className="mt-0.5 shrink-0" onClick={e => { e.stopPropagation(); toggleSelect(job.id) }}>
-                  {isSelected ? <CheckSquare className="w-5 h-5 text-orange-500" /> : <Square className="w-5 h-5 text-gray-400" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-sm bg-orange-500 text-white px-2 py-0.5 rounded-sm shrink-0">{job.logo}</span>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 truncate">{job.title}</h3>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-500"><Building2 className="w-3.5 h-3.5" /><span>{job.company}</span></div>
-                      </div>
-                    </div>
-                    <div className="flex gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => toggleSave(job.id)} className={`p-1.5 border rounded-sm transition-colors ${isSaved ? 'text-white bg-orange-500 border-orange-500' : 'text-gray-400 border-gray-200 hover:border-orange-400 hover:text-orange-500'}`}><Bookmark className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} /></button>
-                      <button className="p-1.5 border border-gray-200 rounded-sm text-gray-400 hover:border-gray-400 hover:text-gray-700 transition-colors"><ExternalLink className="w-4 h-4" /></button>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-gray-400 mb-3">
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{job.posted}</span>
-                    <span className="font-medium text-gray-600">{job.salary}</span>
-                  </div>
-                  {job.description && <p className="text-xs text-gray-500 mb-3 line-clamp-2">{job.description}</p>}
-                  <div className="flex flex-wrap gap-1.5 items-center">
-                    <Badge className={`text-xs font-medium border ${typeColors[job.type] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{job.type}</Badge>
-                    {job.tags.map((tag, idx) => <Badge key={`${tag}-${idx}`} className="text-xs bg-gray-50 text-gray-600 border-gray-200 font-medium">{tag}</Badge>)}
+      {/* Loading skeleton */}
+      {isLoading && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-white border border-gray-200 rounded-sm p-5 animate-pulse">
+              <div className="flex gap-4">
+                <div className="w-5 h-5 bg-gray-200 rounded-sm mt-0.5 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded-sm w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded-sm w-1/2" />
+                  <div className="h-3 bg-gray-100 rounded-sm w-2/3" />
+                  <div className="flex gap-2 mt-2">
+                    <div className="h-5 bg-gray-100 rounded-sm w-16" />
+                    <div className="h-5 bg-gray-100 rounded-sm w-20" />
+                    <div className="h-5 bg-gray-100 rounded-sm w-14" />
                   </div>
                 </div>
               </div>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {filtered.length === 0 && (
+      {/* Job grid */}
+      {!isLoading && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {filtered.map(job => {
+            const isSelected = selected.includes(job.id)
+            const isSaved    = saved.includes(job.id)
+            return (
+              <div
+                key={job.id}
+                onClick={() => toggleSelect(job.id)}
+                className={`bg-white border p-5 transition-all duration-150 cursor-pointer rounded-sm shadow-sm ${
+                  isSelected ? 'border-orange-400 bg-orange-50/50 shadow-orange-100' : 'border-gray-200 hover:border-gray-400 hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 shrink-0" onClick={e => { e.stopPropagation(); toggleSelect(job.id) }}>
+                    {isSelected
+                      ? <CheckSquare className="w-5 h-5 text-orange-500" />
+                      : <Square className="w-5 h-5 text-gray-300" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="font-bold text-sm bg-orange-500 text-white px-2 py-0.5 rounded-sm shrink-0">{job.logo}</span>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate text-sm">{job.title}</h3>
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                            <Building2 className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{job.company}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => toggleSave(job.id)}
+                          className={`p-1.5 border rounded-sm transition-colors ${isSaved ? 'text-white bg-orange-500 border-orange-500' : 'text-gray-400 border-gray-200 hover:border-orange-400 hover:text-orange-500'}`}
+                        >
+                          <Bookmark className="w-3.5 h-3.5" fill={isSaved ? 'currentColor' : 'none'} />
+                        </button>
+                        {job.application_email && (
+                          <a
+                            href={`mailto:${job.application_email}`}
+                            onClick={e => e.stopPropagation()}
+                            className="p-1.5 border border-gray-200 rounded-sm text-gray-400 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                            title={`Email: ${job.application_email}`}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-2.5">
+                      {job.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>}
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{job.posted}</span>
+                      {job.salary !== 'Not specified' && <span className="font-medium text-gray-600">{job.salary}</span>}
+                      {job.application_email && <span className="text-green-600 font-medium">Email available</span>}
+                    </div>
+
+                    {job.description && (
+                      <p className="text-xs text-gray-500 mb-2.5 line-clamp-2 leading-relaxed">{job.description}</p>
+                    )}
+
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <Badge className={`text-xs font-medium border ${typeColors[job.type] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                        {job.type}
+                      </Badge>
+                      {job.source === 'matched' && (
+                        <Badge className="text-xs bg-orange-50 text-orange-500 border-orange-200 font-medium">Matched</Badge>
+                      )}
+                      {job.tags.slice(0, 4).map((tag, i) => (
+                        <Badge key={`${tag}-${i}`} className="text-xs bg-gray-50 text-gray-600 border-gray-200 font-medium">{tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && filtered.length === 0 && (
         <div className="text-center py-20 border border-gray-200 bg-white rounded-sm shadow-sm">
-          <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-          <p className="font-semibold text-gray-500">No jobs match your filters</p>
-          <p className="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
+          {activeTab === 'matched' ? (
+            <>
+              <Sparkles className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+              <p className="font-semibold text-gray-500">No profile-matched jobs found</p>
+              <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">Complete your profile and sync GitHub projects so we can match jobs to your skills.</p>
+              <button onClick={() => handleTabChange('all')} className="mt-4 text-sm text-orange-500 font-medium hover:underline">
+                Browse all jobs instead
+              </button>
+            </>
+          ) : (
+            <>
+              <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+              <p className="font-semibold text-gray-500">No jobs match your filters</p>
+              <p className="text-sm text-gray-400 mt-1">Try adjusting your search or clearing filters.</p>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Floating selection bar */}
+      {selected.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-sm shadow-xl flex items-center gap-4 z-40">
+          <span className="text-sm font-medium">{selected.length} job{selected.length > 1 ? 's' : ''} selected</span>
+          <InteractiveHoverButton onClick={handleBulkApply} className="rounded-none gap-2 py-1.5 px-4 text-sm">
+            <Zap className="w-3.5 h-3.5" /> Apply Now
+          </InteractiveHoverButton>
+          <button onClick={() => setSelected([])} className="text-gray-400 hover:text-white text-sm transition-colors">Clear</button>
         </div>
       )}
     </div>
